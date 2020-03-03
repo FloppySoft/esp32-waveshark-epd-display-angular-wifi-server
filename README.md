@@ -41,5 +41,8 @@ Sometimes it is not easy for beginners to set up all of this, hence a detailed d
 
 ## Dependencies
 ### Arduino IDE Dependencies
+* [GxEPD2](https://github.com/ZinggJM/GxEPD2) Waveshare lib for epd displays
+* [Adafruit GFX](https://github.com/adafruit/Adafruit-GFX-Library) - can be found in lib manager to auto-install
+
 ### Angular Dependencies
 See package.json for details on the angular dependencies.

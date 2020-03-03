@@ -7,7 +7,9 @@
     "build": "ng build",
     "test": "ng test",
     "lint": "ng lint",
-    "e2e": "ng e2e"
+    "e2e": "ng e2e",
+    "build-arduino": "ng build --prod --output-hashing none",
+    "bundle-analyze": "ng build --prod --stats-json && webpack-bundle-analyzer dist/picture-frame-frontend/stats.json"
   },
   "private": true,
   "dependencies": {

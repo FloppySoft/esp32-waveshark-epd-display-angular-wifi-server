@@ -1,5 +1,5 @@
 # Esp32 Waveshark Epd Display Angular Wifi Server
-Picture frame for Waveshark's Esp32 driver board & epd display utilizing Arduino IDE & Angular
+Picture frame for Waveshark's [Esp32 driver board](https://www.waveshare.com/product/displays/accessories/driver-boards/e-paper-esp32-driver-board.htm) & epd display utilizing Arduino IDE & Angular
 
 ## Developer Setup
 Sometimes it is not easy for beginners to set up all of this, hence a detailed description.
@@ -33,6 +33,11 @@ Sometimes it is not easy for beginners to set up all of this, hence a detailed d
 * Install all dependencies for the angular project
   ```
   npm install
+  ```
+* If commands are failing because ```'ng.ps1 cannot be loaded because 
+running scripts is disabled on this system'```, run 
+  ```
+  Set-ExecutionPolicy Unrestricted -Scope CurrentUser
   ```
 
 ## Build

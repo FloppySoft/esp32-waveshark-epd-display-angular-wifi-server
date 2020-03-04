@@ -40,6 +40,16 @@ running scripts is disabled on this system'```, run
   Set-ExecutionPolicy Unrestricted -Scope CurrentUser
   ```
 
+### Local config files
+
+Create a file ```src/arduino/epd_server/local_dev_config.h``` and fill with settings as follows.
+```
+#define wifiSettings
+
+const char* ssid = "Your Wifi Name";
+const char* password = "Your Wifi Password";
+```
+
 ## Build
 ### Angular
 ### Arduino / Esp32

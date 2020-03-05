@@ -8,7 +8,9 @@
     "test": "ng test",
     "lint": "ng lint",
     "e2e": "ng e2e",
-    "build-arduino": "ng build --prod --output-hashing none",
+    "build-arduino": "ng build --prod --output-hashing none && npm run compress-artifacts && npm run move-artifacts",
+    "compress-artifacts": "gzip-all \"dist/picture-frame-frontend/*.{css,js}\" && rimraf dist/picture-frame-frontend/*.js && rimraf dist/picture-frame-frontend/*.css",
+    "move-artifacts": "move .\\dist\\picture-frame-frontend\\*.* .\\..\\..\\arduino\\epd_server\\data\\www",
     "bundle-analyze": "ng build --prod --stats-json --output-hashing none && webpack-bundle-analyzer dist/picture-frame-frontend/stats.json",
     "serve-artifacts": "lite-server --baseDir=\"dist/picture-frame-frontend\""
   },
@@ -37,6 +39,8 @@
     "@types/jasminewd2": "~2.0.3",
     "@types/node": "^12.11.1",
     "codelyzer": "^5.1.2",
+    "delete": "^1.1.0",
+    "gzip-all": "^1.0.0",
     "jasmine-core": "~3.5.0",
     "jasmine-spec-reporter": "~4.2.1",
     "karma": "~4.3.0",
@@ -46,6 +50,7 @@
     "karma-jasmine-html-reporter": "^1.4.2",
     "lite-server": "^2.5.4",
     "protractor": "~5.4.3",
+    "rimraf": "^3.0.2",
     "ts-node": "~8.3.0",
     "tslint": "~5.18.0",
     "typescript": "~3.7.5"

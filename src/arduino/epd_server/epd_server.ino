@@ -1,4 +1,3 @@
-
 #include "WiFi.h"
 #include "SPIFFS.h"
 #include "ESPAsyncWebServer.h"
@@ -35,29 +34,39 @@ void setup(){
 
  /*
   * Hardcoded requests for all needed angular files.
-  * TODO: Utilize lib capabitilies, e.g. wildcards or regex to serve any file.
+  * TODO: Replace with handler for all root requests
   */
   server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
-    request->send(SPIFFS, "/index.html", "text/html");
+    request->send(SPIFFS, "/www/index.html", "text/html");
   });
-    server.on("/index.html", HTTP_GET, [](AsyncWebServerRequest *request){
-    request->send(SPIFFS, "/index.html", "text/html");
+  server.on("/index.html", HTTP_GET, [](AsyncWebServerRequest *request){
+    request->send(SPIFFS, "/www/index.html", "text/html");
   });
-      server.on("/styles.css", HTTP_GET, [](AsyncWebServerRequest *request){
-    request->send(SPIFFS, "/styles.css", "text/css");
+  server.on("/favicon.ico", HTTP_GET, [](AsyncWebServerRequest *request){
+    request->send(SPIFFS, "/www/favicon.ico", "text/html");
   });
-        server.on("/runtime.js", HTTP_GET, [](AsyncWebServerRequest *request){
-    request->send(SPIFFS, "/runtime.js", "application/javascript");
+  
+  server.on("/styles.css", HTTP_GET, [](AsyncWebServerRequest *request){
+    AsyncWebServerResponse *response = request->beginResponse(SPIFFS, "/www/styles.css.gz", "text/css");
+    response->addHeader("Content-Encoding", "gzip");
+    request->send(response);
   });
-          server.on("/polyfills.js", HTTP_GET, [](AsyncWebServerRequest *request){
-    request->send(SPIFFS, "/polyfills.js", "application/javascript");
+  server.on("/runtime.js", HTTP_GET, [](AsyncWebServerRequest *request){
+    AsyncWebServerResponse *response = request->beginResponse(SPIFFS, "/www/runtime.js.gz", "application/javascript");
+    response->addHeader("Content-Encoding", "gzip");
+    request->send(response);
   });
-          server.on("/main.js", HTTP_GET, [](AsyncWebServerRequest *request){
-    request->send(SPIFFS, "/main.js", "application/javascript");
+  server.on("/polyfills.js", HTTP_GET, [](AsyncWebServerRequest *request){
+    AsyncWebServerResponse *response = request->beginResponse(SPIFFS, "/www/polyfills.js.gz", "application/javascript");
+    response->addHeader("Content-Encoding", "gzip");
+    request->send(response);
   });
-          server.on("/favicon.ico", HTTP_GET, [](AsyncWebServerRequest *request){
-    request->send(SPIFFS, "/favicon.ico", "text/html");
+  server.on("/main.js", HTTP_GET, [](AsyncWebServerRequest *request){
+    AsyncWebServerResponse *response = request->beginResponse(SPIFFS, "/www/main.js.gz", "application/javascript");
+    response->addHeader("Content-Encoding", "gzip");
+    request->send(response);
   });
+
  
   server.begin();
 }

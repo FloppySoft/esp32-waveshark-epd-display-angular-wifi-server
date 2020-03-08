@@ -4,15 +4,9 @@
   //z-index: 9999;
   //top: 0px;
   //background-color: white !important;
-  .app-navbar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    .mat-tab-header {
-      // Make header appear like a mat-elevation-z4
-      box-shadow: 0px 2px 4px -1px rgba(0, 0, 0, 0.2), 0px 4px 5px 0px rgba(0, 0, 0, 0.14),
-        0px 1px 10px 0px rgba(0, 0, 0, 0.12);
-    }
+  mat-tab-header.mat-tab-header {
+    // Make header appear like a mat-elevation-z4
+    box-shadow: 0px 2px 4px -1px rgba(0, 0, 0, 0.2), 0px 4px 5px 0px rgba(0, 0, 0, 0.14),
+      0px 1px 10px 0px rgba(0, 0, 0, 0.12);
   }
 }

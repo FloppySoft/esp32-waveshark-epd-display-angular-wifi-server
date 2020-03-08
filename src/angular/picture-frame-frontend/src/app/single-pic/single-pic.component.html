@@ -1,6 +1,31 @@
 <div class="row justify-content-md-center">
   <div class="col col-lg-6 col-md-9">
-    <mat-card class="mat-elevation-z1">Singe Image</mat-card>
+    <mat-card class="mat-elevation-z1" id="drop-target">
+
+      <div>
+
+        <div class="image-container card-top-no-margin"
+        (dragover)="$event.preventDefault(); isDragging = true;"
+        (dragleave)="isDragging = false;"
+        (drop)="isDragging = false; $event.preventDefault(); $event.stopPropagation(); onFileDrop($event)"
+        >
+          <div class="aspect-ration-container round-edge-top">
+            <img class="image-preview" src={{localUrl}} *ngIf="!isDragging && localUrl">
+            <div *ngIf="isDragging || !localUrl" class="drop-area">
+              <h1 class="dropping-text">Drop it like it's art</h1>
+            </div>
+          </div>
+        </div>
+
+        <input hidden #uploader id="image-input" type="file" (change)="onFileSelect($event)" />
+        <button for="image-input" (click)="uploader.click()" mat-raised-button color="primary">
+          <mat-icon>attachment</mat-icon>
+          Choose File
+        </button>
+
+      </div>
+
+    </mat-card>
   </div>
 </div>
 <!--  <mat-card class="mat-elevation-z4">Singe Image</mat-card> -->

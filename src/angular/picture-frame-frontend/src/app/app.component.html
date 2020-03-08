@@ -1,20 +1,27 @@
-<mat-tab-group color="accent" backgroundColor="primary" dynamicHeight>
-  <mat-tab label="Add Picture">
-    <div class="example-large-box mat-elevation-z4">
-      Add Picture
-    </div>
-  </mat-tab>
-  <mat-tab label="Gallery">
-    <div class="example-small-box mat-elevation-z4">
-      Gallery
-    </div>
-  </mat-tab>
-  <mat-tab label="Settings">
-    <div class="example-large-box mat-elevation-z4">
-      Settings
-    </div>
-  </mat-tab>
-</mat-tab-group>
+<div class="page">
+  <mat-tab-group class="app-navbar" mat-align-tabs="center" color="accent" backgroundColor="primary"
+    animationDuration="0ms">
 
+    <mat-tab label="Single Picture">
+      <div class="tab-content m-3">
+        <app-single-pic></app-single-pic>
+      </div>
+    </mat-tab>
 
-<router-outlet></router-outlet>
+    <mat-tab label="Gallery">
+      <div class="tab-content m-3">
+        <mat-card class="mat-elevation-z4">Gallery</mat-card>
+      </div>
+    </mat-tab>
+
+    <mat-tab label="Settings">
+      <div class="tab-content m-3">
+        <mat-card class="mat-elevation-z4">Settings</mat-card>
+      </div>
+    </mat-tab>
+
+  </mat-tab-group>
+
+  <router-outlet></router-outlet>
+
+</div>

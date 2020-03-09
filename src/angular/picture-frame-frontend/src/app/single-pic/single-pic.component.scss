@@ -37,3 +37,8 @@
 
   }
 }
+
+.editCanvas {
+  position: fixed; // canvas is not allowed to be squeezed
+  //display: none;
+}

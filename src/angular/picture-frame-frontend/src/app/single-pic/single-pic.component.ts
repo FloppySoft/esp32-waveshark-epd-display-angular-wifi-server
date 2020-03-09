@@ -12,13 +12,13 @@ export interface Vector2D { // TODO: Move reusable interface into root
 })
 export class SinglePicComponent implements OnInit {
   @ViewChild('editCanvas', { static: true }) canvas: ElementRef<HTMLCanvasElement>;
-  private ctx: CanvasRenderingContext2D;
   screenSize = { // TODO: Move into global config singleton
-    x: 400,
-    y: 300,
+    x: 800,
+    y: 480,
   };
-  localUrl = null;
+  sourceUrl = null;
   isDragging = false;
+  isPreview = false;
   constructor() { }
 
   ngOnInit(): void {
@@ -41,8 +41,8 @@ export class SinglePicComponent implements OnInit {
   private previewImage(file: any): void {
     const reader = new FileReader();
     reader.onload = (event) => {
-      this.localUrl = event.target.result;
-      this.render(this.localUrl);
+      this.sourceUrl = event.target.result;
+      this.render(this.sourceUrl);
     },
       reader.readAsDataURL(file);
   }
@@ -63,10 +63,11 @@ export class SinglePicComponent implements OnInit {
         x: (size.x - clipped.x) / 2,
         y: (size.y - clipped.y) / 2,
       };
-      this.ctx = this.canvas.nativeElement.getContext('2d');
+      const ctx = this.canvas.nativeElement.getContext('2d') as CanvasRenderingContext2D;
       this.canvas.nativeElement.width = target.x;
       this.canvas.nativeElement.height = target.y;
-      this.ctx.drawImage(
+      ctx.filter = 'grayscale(100%)';
+      ctx.drawImage(
         image,              // img    - Image to draw on canvas
         offset.x,           // sx     - Offset position, if aspect ratio not fitting
         offset.y,           // sy
@@ -77,9 +78,55 @@ export class SinglePicComponent implements OnInit {
         target.x,  // width  - Drawing width on canvas
         target.y,  // heigt
       );
+
+      const imageData = ctx.getImageData(0, 0, target.x, target.y);
+      const color = imageData.data;
+      const bw = this.extractGreyscaleImageBytes(color);
+      const ditheredRgb = this.greyscaleToRbga(this.dither(bw));
+      const ditheredImage = new ImageData(ditheredRgb, this.screenSize.x, this.screenSize.y);
+      ctx.putImageData(ditheredImage, 0, 0);
     };
     image.src = src;
   }
+
+  private extractGreyscaleImageBytes(rgbInput: Uint8ClampedArray): Uint8ClampedArray{
+    const greyScaleImageBytes = rgbInput.filter((elem, i) => {
+      return (i % 4) === 0;
+    });
+/*     for (let i = 0; i < this.screenSize.x * this.screenSize.y; i++) {
+      greyScaleImageBytes.push(rgbInput[i * 4]);
+    } */
+    return greyScaleImageBytes;
+  }
+
+  private greyscaleToRbga(bwInput: Uint8ClampedArray): Uint8ClampedArray{
+    const color: number[] = [];
+    for (const elem of bwInput) {
+      color.push(elem);
+      color.push(elem);
+      color.push(elem);
+      color.push(255);
+    }
+    return new Uint8ClampedArray(color);
+  }
+
+  private toBlob(): void{
+    /* const ctx = this.canvas.nativeElement.getContext('2D') as CanvasRenderingContext2D;
+    const bytes = ctx.getImageData(0, 0, this.screenSize.x, this.screenSize.y).data; */
+    const b64String = this.canvas.nativeElement.toDataURL('image/jpeg');
+    const b64RawString = b64String.replace(/data:image\/jpeg;base64,/g, '');
+  }
+
+  private dataURItoBlob(dataURI) {
+    const byteString = window.atob(dataURI);
+    const arrayBuffer = new ArrayBuffer(byteString.length);
+    const int8Array = new Uint8Array(arrayBuffer);
+    for (let i = 0; i < byteString.length; i++) {
+      int8Array[i] = byteString.charCodeAt(i);
+    }
+    const blob = new Blob([int8Array], { type: 'image/jpeg' });
+    return blob;
+ }
 
   private coverCrop(size: Vector2D, target: Vector2D): Vector2D {
     // Handle aspect ratio of input like a object-fit: cover
@@ -97,6 +144,36 @@ export class SinglePicComponent implements OnInit {
         y: size.x / (targetRatio),
       });
     }
+  }
+
+  private dither(image: Uint8ClampedArray): Uint8ClampedArray {
+    const width = this.screenSize.x;
+    const height = this.screenSize.y;
+    const dithered = image;
+    for (let i = 0; i < height; i++) {
+      for (let j = 0; j < width; j++) {
+        const ci = i * width + j;
+        const cc = dithered[ci];
+        const rc = (cc < 128 ? 0 : 255);
+        const err = cc - rc;
+        dithered[ci] = rc;
+        if (j + 1 < width) {
+
+          dithered[ci + 1] += (err * 7) / 16;
+        }
+        if (i + 1 === height) {
+          continue;
+        }
+        if (j > 0) {
+          dithered[ci + width - 1] += (err * 3) / 16;
+        }
+        dithered[ci + width] += (err * 5) / 16;
+        if (j + 1 < width) {
+          dithered[ci + width + 1] += (err * 1) / 16;
+        }
+      }
+    }
+    return dithered;
   }
 
 }

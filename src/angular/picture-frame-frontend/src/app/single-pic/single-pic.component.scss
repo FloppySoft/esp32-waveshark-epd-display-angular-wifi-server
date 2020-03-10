@@ -1,3 +1,14 @@
+mat-expansion-panel{
+  margin: 0 -16px 0 -16px;
+  mat-expansion-panel-header {
+    padding: 8px 15px 0 15px;
+  }
+}
+
+:host ::ng-deep .mat-expansion-indicator { // Needs ng-deep cause otherwise no effect
+  padding-bottom: 8px;
+}
+
 .aspect-ration-container {
   display: block;
   width: 100%;
@@ -34,11 +45,18 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-
   }
 }
 
 .editCanvas {
   position: fixed; // canvas is not allowed to be squeezed
-  //display: none;
+  display: none;
+}
+
+.description-headline {
+  margin-bottom: 0;
+}
+
+.adjust-description {
+  color: rgba(0,0,0,.54);
 }

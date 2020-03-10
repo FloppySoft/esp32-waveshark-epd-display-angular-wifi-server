@@ -10,6 +10,9 @@ import {MatTabsModule} from '@angular/material/tabs';
 import {MatDividerModule} from '@angular/material/divider';
 import {MatButtonModule} from '@angular/material/button';
 import {MatIconModule} from '@angular/material/icon';
+import {MatSlideToggleModule} from '@angular/material/slide-toggle';
+import {MatExpansionModule} from '@angular/material/expansion';
+import {MatSliderModule} from '@angular/material/slider';
 
 import { SinglePicComponent } from './single-pic/single-pic.component';
 
@@ -27,6 +30,9 @@ import { SinglePicComponent } from './single-pic/single-pic.component';
     MatDividerModule,
     MatButtonModule,
     MatIconModule,
+    MatSlideToggleModule,
+    MatExpansionModule,
+    MatSliderModule,
   ],
   providers: [],
   bootstrap: [AppComponent],

@@ -12,13 +12,17 @@ export interface Vector2D { // TODO: Move reusable interface into root
 })
 export class SinglePicComponent implements OnInit {
   @ViewChild('editCanvas', { static: true }) canvas: ElementRef<HTMLCanvasElement>;
+  descriptionText = 'Add a Picture';
   screenSize = { // TODO: Move into global config singleton
     x: 800,
     y: 480,
   };
   sourceUrl = null;
+  previewUrl = null;
   isDragging = false;
   isPreview = false;
+  adjustBrightness = 100;
+  adjustContrast = 100;
   constructor() { }
 
   ngOnInit(): void {
@@ -41,7 +45,7 @@ export class SinglePicComponent implements OnInit {
   private previewImage(file: any): void {
     const reader = new FileReader();
     reader.onload = (event) => {
-      this.sourceUrl = event.target.result;
+      this.sourceUrl = event.target.result; // Set preview image
       this.render(this.sourceUrl);
     },
       reader.readAsDataURL(file);
@@ -66,7 +70,7 @@ export class SinglePicComponent implements OnInit {
       const ctx = this.canvas.nativeElement.getContext('2d') as CanvasRenderingContext2D;
       this.canvas.nativeElement.width = target.x;
       this.canvas.nativeElement.height = target.y;
-      ctx.filter = 'grayscale(100%)';
+      ctx.filter = `grayscale(100%) brightness(${this.adjustBrightness}%) contrast(${this.adjustContrast}%)`;
       ctx.drawImage(
         image,              // img    - Image to draw on canvas
         offset.x,           // sx     - Offset position, if aspect ratio not fitting
@@ -85,6 +89,7 @@ export class SinglePicComponent implements OnInit {
       const ditheredRgb = this.greyscaleToRbga(this.dither(bw));
       const ditheredImage = new ImageData(ditheredRgb, this.screenSize.x, this.screenSize.y);
       ctx.putImageData(ditheredImage, 0, 0);
+      this.previewUrl = this.canvas.nativeElement.toDataURL('image/jpeg');
     };
     image.src = src;
   }

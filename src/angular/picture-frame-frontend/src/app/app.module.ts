@@ -1,10 +1,7 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
-
-import { AppRoutingModule } from './app-routing.module';
-import { AppComponent } from './app.component';
+import { HttpClientModule } from '@angular/common/http';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-
 import {MatCardModule} from '@angular/material/card';
 import {MatTabsModule} from '@angular/material/tabs';
 import {MatDividerModule} from '@angular/material/divider';
@@ -14,14 +11,19 @@ import {MatSlideToggleModule} from '@angular/material/slide-toggle';
 import {MatExpansionModule} from '@angular/material/expansion';
 import {MatSliderModule} from '@angular/material/slider';
 
+import { AppComponent } from './app.component';
+import { AppRoutingModule } from './app-routing.module';
 import { SinglePicComponent } from './single-pic/single-pic.component';
+import { SettingsComponent } from './settings/settings.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     SinglePicComponent,
+    SettingsComponent,
   ],
   imports: [
+    HttpClientModule,
     BrowserModule,
     AppRoutingModule,
     BrowserAnimationsModule,
@@ -36,6 +38,6 @@ import { SinglePicComponent } from './single-pic/single-pic.component';
   ],
   providers: [],
   bootstrap: [AppComponent],
-  exports: [SinglePicComponent],
+  exports: [SinglePicComponent, SettingsComponent],
 })
 export class AppModule { }

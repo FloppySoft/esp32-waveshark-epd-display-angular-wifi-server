@@ -18,20 +18,14 @@
 
       <mat-accordion class="mat-elevation-z0">
         <mat-expansion-panel class="mat-elevation-z0" [disabled]="!sourceUrl"
-          (opened)="isPreview = true; descriptionText='Adjust the Picture'" (closed)="descriptionText='Add a Picture'"
+          (opened)="isPreview = true; descriptionText='Adjust'" (closed)="descriptionText='Add Picture'"
           displayMode="flat">
 
           <mat-expansion-panel-header>
             <div class="col-5 d-flex justify-content-start">
               <h2 class="description-headline">{{descriptionText}}</h2>
             </div>
-            <div class="align-self-center d-flex justify-content-center">
-              <mat-slide-toggle *ngIf="sourceUrl" class="preview-toggle" color="primary"
-                (click)="$event.stopPropagation();" (change)="isPreview = $event.checked" [checked]="isPreview"
-                [disabled]="!sourceUrl">
-                preview
-              </mat-slide-toggle>
-            </div>
+
             <div *ngIf="sourceUrl" class="adjust-description col align-self-center d-flex justify-content-end">
               adjust
             </div>
@@ -46,18 +40,32 @@
             <div class="col d-flex justify-content-center">
               <mat-slider value="100" min="80" max="120" (input)="adjustContrast = $event.value; render(sourceUrl)">
               </mat-slider>
-              <mat-icon>brightness_medium</mat-icon>
+              <mat-icon>compare</mat-icon>
             </div>
           </div>
         </mat-expansion-panel>
       </mat-accordion>
 
       <div class="row controls">
-        <div class="col">
+        <div class="col d-flex justify-content-start">
           <button class="mat-elevation-z2" for="image-input" (click)="uploader.click()" mat-raised-button
             color="primary">
             <mat-icon>attachment</mat-icon>
             Choose File
+          </button>
+        </div>
+        <div class="col align-self-center d-flex justify-content-center">
+          <mat-slide-toggle *ngIf="sourceUrl" class="preview-toggle" color="primary"
+            (click)="$event.stopPropagation();" (change)="isPreview = $event.checked" [checked]="isPreview"
+            [disabled]="!sourceUrl">
+            preview
+          </mat-slide-toggle>
+        </div>
+        <div class="col d-flex justify-content-end">
+          <button class="mat-elevation-z2" [disabled]="!previewUrl" (click)="onTransmit()" mat-raised-button
+            color="accent">
+            <mat-icon>cast</mat-icon>
+            To Screen
           </button>
         </div>
       </div>

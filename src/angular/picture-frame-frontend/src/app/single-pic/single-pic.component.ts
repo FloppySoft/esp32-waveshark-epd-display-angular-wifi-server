@@ -1,4 +1,5 @@
 import { Component, OnInit, ChangeDetectionStrategy, ViewChild, ElementRef } from '@angular/core';
+import { ImageService } from '../core/image.service';
 
 export interface Vector2D { // TODO: Move reusable interface into root
   x: number;
@@ -12,18 +13,22 @@ export interface Vector2D { // TODO: Move reusable interface into root
 })
 export class SinglePicComponent implements OnInit {
   @ViewChild('editCanvas', { static: true }) canvas: ElementRef<HTMLCanvasElement>;
-  descriptionText = 'Add a Picture';
+  descriptionText = 'Add Picture';
   screenSize = { // TODO: Move into global config singleton
     x: 800,
     y: 480,
   };
   sourceUrl = null;
   previewUrl = null;
+  byteArray: Uint8ClampedArray;
   isDragging = false;
   isPreview = false;
   adjustBrightness = 100;
   adjustContrast = 100;
-  constructor() { }
+
+  constructor(
+    private imageService: ImageService,
+    ) {}
 
   ngOnInit(): void {
   }
@@ -40,6 +45,12 @@ export class SinglePicComponent implements OnInit {
       return;
     }
     this.previewImage(imageFile);
+  }
+
+  onTransmit(): void {
+    this.imageService.putOnScreen(this.byteArray).subscribe(() => {
+
+    });
   }
 
   private previewImage(file: any): void {
@@ -86,7 +97,8 @@ export class SinglePicComponent implements OnInit {
       const imageData = ctx.getImageData(0, 0, target.x, target.y);
       const color = imageData.data;
       const bw = this.extractGreyscaleImageBytes(color);
-      const ditheredRgb = this.greyscaleToRbga(this.dither(bw));
+      this.byteArray = this.dither(bw);
+      const ditheredRgb = this.greyscaleToRbga(this.byteArray);
       const ditheredImage = new ImageData(ditheredRgb, this.screenSize.x, this.screenSize.y);
       ctx.putImageData(ditheredImage, 0, 0);
       this.previewUrl = this.canvas.nativeElement.toDataURL('image/jpeg');

@@ -10,7 +10,7 @@
     "e2e": "ng e2e",
     "build-arduino": "ng build --prod --output-hashing none && npm run compress-artifacts && npm run move-artifacts",
     "compress-artifacts": "gzip-all \"dist/picture-frame-frontend/*.{css,js}\" && rimraf dist/picture-frame-frontend/*.js && rimraf dist/picture-frame-frontend/*.css",
-    "move-artifacts": "move .\\dist\\picture-frame-frontend\\*.* .\\..\\..\\arduino\\epd_server\\data\\www",
+    "move-artifacts": "move .\\dist\\picture-frame-frontend\\*.* .\\..\\..\\platformio\\epd-server\\data\\www",
     "bundle-analyze": "ng build --prod --stats-json --output-hashing none && webpack-bundle-analyzer dist/picture-frame-frontend/stats.json",
     "serve-artifacts": "lite-server --baseDir=\"dist/picture-frame-frontend\""
   },

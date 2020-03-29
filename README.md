@@ -12,11 +12,9 @@ Until this is fixed, enjoy a nice Angular frontend for a microcontroller being c
 ## Overview
 
 The frontend is served by the ESP32 and allows uploading images to the picture frame. The design is kept material-like utilizing  [Angular Material Components](https://material.angular.io/). 
-
-Looks like this:
-
-![screenshot](docs/media/screenshot_main.png "Screenshot of the frontend")
-
+<p align="center">
+<img src="docs/media/screenshot_main.png" width="50%">
+</p>
 All files to be served are stored within the ESP32's SPIFFS, this project allows easily building all frontend artifacts into pre-compressed files.
 
 ## Developer Setup
@@ -59,7 +57,6 @@ running scripts is disabled on this system'```, run
   ```
 
 ### Local config files
-
 Create a file ```src/arduino/epd_server/local_dev_config.h``` and fill with settings as follows.
 ```
 #define wifiSettings
@@ -78,7 +75,10 @@ npm run build-arduino
 ### Arduino / Esp32
 
 ## Debugging the ESP32
-This holds true using a FTDI2232HL "Minimodule", in this case a cheap $10 breakout with the device name ```Dual RS232-HS```.
+This holds true using a FTDI2232HL "Minimodule", in this case a 
+[cheap $10 breakout](https://www.aliexpress.com/i/32958712445.html) 
+with the device name ```Dual RS232-HS```.
+
 * Install the ```platformio-ide``` plugin in VSCode.
 * Import the project into PlatformIO
 * Download & use [Zadic](https://github.com/pbatard/libwdi/releases) to install the ```Dual RS232-HS (Interface 0)``` Device as WinUSB driver.
@@ -102,6 +102,17 @@ This holds true using a FTDI2232HL "Minimodule", in this case a cheap $10 breako
   ```
   ftdi_device_desc "Dual RS232-HS"
   ```
+
+### Debugger Connection
+
+| JTAG Name | FTDI 2232HL Pin | ESP32 Pin |
+| --------- | --------------- | --------- |
+| TCK       | FTDI AD0        | GPIO13
+| TDI       | FTDI AD1        | GPIO12
+| TDO       | FTDI AD2        | GPIO15
+| TMS       | FTDI AD3        | GPIO14
+| RESET     | FTDI AC2        | EN
+| GND       | FTDI GND        | GND
 
 ## Dependencies
 ### Arduino Framework Dependencies

@@ -18,15 +18,17 @@ export class ImageService {
     const boolArray: boolean[] = [];
     // tslint:disable-next-line: prefer-for-of
     for (let i = 0; i < clampedArray.length; i++) { // Nasty Uint8ClampedArray
-      boolArray.push(clampedArray[i] > 0);
+      boolArray.push(clampedArray[i] === 0);
     }
     const byteArray: number[] = [];
     for (let i = 0; i < boolArray.length / 8; i++) {
       let byte = 0;
       for (let j = 0; j < 8; j++) {
-        if (boolArray[j * i]) {
+        // tslint:disable-next-line: no-bitwise
+        byte <<= 1;
+        if (boolArray[8 * i + j]) {
           // tslint:disable-next-line: no-bitwise
-          byte = byte | (1 << j);
+          byte |= 1;
         }
       }
       byteArray.push(byte);

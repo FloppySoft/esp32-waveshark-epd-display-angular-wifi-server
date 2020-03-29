@@ -1,5 +1,23 @@
 # Esp32 Waveshark Epd Display Angular Wifi Server
-Picture frame for Waveshark's [Esp32 driver board](https://www.waveshare.com/product/displays/accessories/driver-boards/e-paper-esp32-driver-board.htm) & epd display utilizing Arduino IDE & Angular
+Picture frame for Waveshark's [Esp32 driver board](https://www.waveshare.com/product/displays/accessories/driver-boards/e-paper-esp32-driver-board.htm) & an epd "e-ink" display utilizing Arduino IDE & Angular
+
+## WORK IN PROGRESS - BUG IN USED LIBS LET THE ESP32 CRASH
+I currently work hard on a workaround for the display lib crashing on displaying a picture. Might be a memory issue, allthough there is plenty during runtime. Possible workarounds
+* Directly using SPIFFS to reduce memory usage
+* Investigating ```free()``` crashing on ESP32
+* Using the native and hard to maintain driver from Waveshare
+
+Until this is fixed, enjoy a nice Angular frontend for a microcontroller being compressed into ~100 kB!
+
+## Overview
+
+The frontend is served by the ESP32 and allows uploading images to the picture frame. The design is kept material-like utilizing  [Angular Material Components](https://material.angular.io/). 
+
+Looks like this:
+
+![screenshot](docs/media/screenshot_main.png "Screenshot of the frontend")
+
+All files to be served are stored within the ESP32's SPIFFS, this project allows easily building all frontend artifacts into pre-compressed files.
 
 ## Developer Setup
 Sometimes it is not easy for beginners to set up all of this, hence a detailed description.
@@ -52,10 +70,41 @@ const char* password = "Your Wifi Password";
 
 ## Build
 ### Angular
+Make sure your terminal is on the angular root path - that is ```src/angular/picture-frame-frontend``` - and run
+```
+npm run build-arduino
+```
+
 ### Arduino / Esp32
 
+## Debugging the ESP32
+This holds true using a FTDI2232HL "Minimodule", in this case a cheap $10 breakout with the device name ```Dual RS232-HS```.
+* Install the ```platformio-ide``` plugin in VSCode.
+* Import the project into PlatformIO
+* Download & use [Zadic](https://github.com/pbatard/libwdi/releases) to install the ```Dual RS232-HS (Interface 0)``` Device as WinUSB driver.
+* Edit ```platformio.ini``` to contain
+  ```
+  [env:esp32dev]
+  platform = espressif32
+  board = esp32dev
+  framework = arduino
+  upload_port = <YOUR COM PORT OF ESP32>
+  monitor_speed = 115200
+  upload_speed = 921600
+  debug_tool = minimodule
+  ```
+* Run Debugging once (```F5```) and let it fail. If it fails and does not find your debugger, change the debugger name in
+  
+  C:\Users\YOURNAME\\.platformio\packages\tool-openocd-esp32\share\openocd\scripts\interface\ftdi\minimodule.cfg
+
+  to
+
+  ```
+  ftdi_device_desc "Dual RS232-HS"
+  ```
+
 ## Dependencies
-### Arduino IDE Dependencies
+### Arduino Framework Dependencies
 * [GxEPD2](https://github.com/ZinggJM/GxEPD2) Waveshare lib for epd displays
 * [Adafruit GFX](https://github.com/adafruit/Adafruit-GFX-Library) - can be found in lib manager to auto-install
 

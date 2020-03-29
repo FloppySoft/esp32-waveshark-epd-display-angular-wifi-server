@@ -1,0 +1,62 @@
+mat-expansion-panel{
+  margin: 0 -16px 0 -16px;
+  mat-expansion-panel-header {
+    padding: 8px 15px 0 15px;
+  }
+}
+
+:host ::ng-deep .mat-expansion-indicator { // Needs ng-deep cause otherwise no effect
+  padding-bottom: 8px;
+}
+
+.aspect-ration-container {
+  display: block;
+  width: 100%;
+  position: relative;
+  height: 0; // height is 0, but padding creates area for children
+  padding: 60% 0 0 0; // Aspect ratio of 7.5" display = 480/800*100
+  overflow: hidden;
+}
+
+.image-preview{
+  position: absolute;
+  display: block;
+  object-fit: cover;
+  height: 100%;
+  width: 100%;
+  max-width: 100%;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  margin: auto;
+}
+
+.drop-area {
+  position: absolute;
+  top: 15px;
+  bottom: 0;
+  left: 15px;
+  right: 15px;
+  border: 3px dashed #c5cae9;
+  .dropping-text {
+    color: #c5cae9;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+  }
+}
+
+.editCanvas {
+  position: fixed; // canvas is not allowed to be squeezed
+  display: none;
+}
+
+.description-headline {
+  margin-bottom: 0;
+}
+
+.adjust-description {
+  color: rgba(0,0,0,.54);
+}

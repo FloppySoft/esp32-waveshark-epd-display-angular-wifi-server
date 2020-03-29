@@ -1,0 +1,81 @@
+<div class="row justify-content-md-center">
+  <div class="col col-lg-6 col-md-9">
+    <mat-card class="mat-elevation-z1">
+
+      <div class="image-container card-top-no-margin" (dragover)="$event.preventDefault(); isDragging = true;"
+        (dragleave)="isDragging = false;"
+        (drop)="isDragging = false; $event.preventDefault(); $event.stopPropagation(); onFileDrop($event)">
+        <div class="aspect-ration-container round-edge-top">
+          <img class="image-preview" [src]="sourceUrl" *ngIf="!isDragging && sourceUrl && !isPreview">
+          <img class="image-preview" [src]="previewUrl" *ngIf="!isDragging && sourceUrl && isPreview">
+          <div *ngIf="isDragging || !sourceUrl" class="drop-area">
+            <h1 class="dropping-text">Drop it like it's art</h1>
+          </div>
+        </div>
+      </div>
+      <input hidden #uploader id="image-input" type="file" (change)="onFileSelect($event)" />
+
+
+      <mat-accordion class="mat-elevation-z0">
+        <mat-expansion-panel class="mat-elevation-z0" [disabled]="!sourceUrl"
+          (opened)="isPreview = true; descriptionText='Adjust'" (closed)="descriptionText='Add Picture'"
+          displayMode="flat">
+
+          <mat-expansion-panel-header>
+            <div class="col-5 d-flex justify-content-start">
+              <h2 class="description-headline">{{descriptionText}}</h2>
+            </div>
+
+            <div *ngIf="sourceUrl" class="adjust-description col align-self-center d-flex justify-content-end">
+              adjust
+            </div>
+          </mat-expansion-panel-header>
+
+          <div class="row image-adjust-controls">
+            <div class="col d-flex justify-content-center">
+              <mat-slider value="100" min="70" max="130" (input)="adjustBrightness = $event.value; render(sourceUrl)">
+              </mat-slider>
+              <mat-icon>brightness_high</mat-icon>
+            </div>
+            <div class="col d-flex justify-content-center">
+              <mat-slider value="100" min="80" max="120" (input)="adjustContrast = $event.value; render(sourceUrl)">
+              </mat-slider>
+              <mat-icon>compare</mat-icon>
+            </div>
+          </div>
+        </mat-expansion-panel>
+      </mat-accordion>
+
+      <div class="row controls">
+        <div class="col d-flex justify-content-start">
+          <button class="mat-elevation-z2" for="image-input" (click)="uploader.click()" mat-raised-button
+            color="primary">
+            <mat-icon>attachment</mat-icon>
+            Choose File
+          </button>
+        </div>
+        <div class="col align-self-center d-flex justify-content-center">
+          <mat-slide-toggle *ngIf="sourceUrl" class="preview-toggle" color="primary"
+            (click)="$event.stopPropagation();" (change)="isPreview = $event.checked" [checked]="isPreview"
+            [disabled]="!sourceUrl">
+            preview
+          </mat-slide-toggle>
+        </div>
+        <div class="col d-flex justify-content-end">
+          <button class="mat-elevation-z2" [disabled]="!previewUrl" (click)="onTransmit()" mat-raised-button
+            color="accent">
+            <mat-icon>cast</mat-icon>
+            To Screen
+          </button>
+        </div>
+      </div>
+    </mat-card>
+  </div>
+</div>
+
+
+<div class="row justify-content-md-center">
+  <div class="editCanvas">
+    <canvas hide class="" #editCanvas [width]="screenSize.x" [height]="screenSize.y"></canvas>
+  </div>
+</div>

@@ -1,4 +1,30 @@
+@use './lib/bootstrap-grid.min.css';
 /* You can add global styles to this file, and also import other style files */
 
 html, body { height: 100%; }
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+
+// Standard margins for me
+.m-3 {
+  margin: 15px;
+}
+
+// Revert margins e.g. for background images
+.no-margin {
+  margin: -15px;
+  border-radius: 4px;
+}
+
+.card-top-no-margin {
+  margin: -16px -16px 0 -16px !important;
+  border-radius: 4px;
+}
+
+.round-edge {
+  border-radius: 4px;
+}
+
+.round-edge-top {
+  border-radius: 4px 4px 0 0;
+}
+

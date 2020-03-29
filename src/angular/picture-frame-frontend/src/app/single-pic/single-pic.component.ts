@@ -48,7 +48,7 @@ export class SinglePicComponent implements OnInit {
   }
 
   onTransmit(): void {
-    this.imageService.putOnScreen(this.byteArray).subscribe(() => {
+    this.imageService.uploadSingleFile(this.byteArray).subscribe(() => {
 
     });
   }

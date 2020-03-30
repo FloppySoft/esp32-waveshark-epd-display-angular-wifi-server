@@ -4,8 +4,7 @@
 #include "FS.h"
 #include "SPIFFS.h"
 #include "ESPAsyncWebServer.h"
-
-
+#include "picture.h"
 
 AsyncWebServer webServer(80);
 // TODO: Refactor into system settings or config files
@@ -15,8 +14,6 @@ AsyncWebServer webServer(80);
 #define SCREEN_RESOLUTION SCREEN_SIZE_X*SCREEN_SIZE_Y/8   // Display size in pixels.
 #define PAGE_INCREMENT_SIZE SCREEN_SIZE_Y/PAGE_STEPS      // Number of pixels per page, 48 = 10 pages on 480px display
 #define PAGE_BYTE_SIZE SCREEN_RESOLUTION/PAGE_STEPS
-byte temporaryImageByteArray[SCREEN_RESOLUTION]; // Target bayte array. Currently global, waste of ram
-
 
 //#include "server.h"
 
@@ -30,11 +27,11 @@ byte temporaryImageByteArray[SCREEN_RESOLUTION]; // Target bayte array. Currentl
 // For GxEPD2 - currently not working, overflow?
 // #define ENABLE_GxEPD2_GFX 0
  #include <GxEPD2_BW.h>
- #define MAX_DISPLAY_BUFFER_SIZE 15000ul // ~15k is a good compromise
- #define MAX_HEIGHT(EPD) (EPD::HEIGHT <= MAX_DISPLAY_BUFFER_SIZE / (EPD::WIDTH / 8) ? EPD::HEIGHT : MAX_DISPLAY_BUFFER_SIZE / (EPD::WIDTH / 8))
- GxEPD2_BW<GxEPD2_750_T7, MAX_HEIGHT(GxEPD2_750_T7)> display(GxEPD2_750_T7(/*CS=4*/ 15, /*DC=*/ 27, /*RST=*/ 26, /*BUSY=*/ 25)); // GDEW075T7 800x480
+ //#define MAX_DISPLAY_BUFFER_SIZE 15000ul // ~15k is a good compromise
+ //#define MAX_HEIGHT(EPD) (EPD::HEIGHT <= MAX_DISPLAY_BUFFER_SIZE / (EPD::WIDTH / 8) ? EPD::HEIGHT : MAX_DISPLAY_BUFFER_SIZE / (EPD::WIDTH / 8))
+ //GxEPD2_BW<GxEPD2_750_T7, MAX_HEIGHT(GxEPD2_750_T7)> display(GxEPD2_750_T7(/*CS=4*/ 15, /*DC=*/ 27, /*RST=*/ 26, /*BUSY=*/ 25)); // GDEW075T7 800x480
  //GxEPD2_BW < GxEPD2_750_T7, GxEPD2_750_T7::HEIGHT / 2 > display(GxEPD2_750_T7(/*CS=D8*/ 15, /*DC=D3*/ 27, /*RST=D4*/ 26, /*BUSY=D2*/ 25)); // GDEW075T7 800x480
-
+GxEPD2_BW<GxEPD2_750_T7, GxEPD2_750_T7::HEIGHT> display(GxEPD2_750_T7(/*CS=*/ 15, /*DC=*/ 27, /*RST=*/ 26, /*BUSY=*/ 25));
 
 // == CONFIG ==
 /*
@@ -59,56 +56,14 @@ void handleUpload(AsyncWebServerRequest * request, String filename, size_t index
   }
 }
 
-byte *getImageBuffer() {
-  return temporaryImageByteArray;
-}
 
-/**
- * Processes a POST request uplaoding an image. Is called on each arriving chunk, hence needs
- * to handle being called multiple times -> static vars
- */
-void onUploadImage(AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
-  if (!index) {
-    Serial.printf("Processing... ");
-    //temporaryImageByteArray = (byte *)malloc (SCREEN_RESOLUTION);
-    if (!temporaryImageByteArray) {
-      Serial.println("Malloc not successfull");
-    }
-  }
-  //static byte temporaryImageByteArray[SCREEN_RESOLUTION];
-  static String valueString = ""; // must be static to catch one byte breaking around a reqeust chunk
-  static long elem = 0; // Target iterator, static to survive each chun
-  for (size_t i = 0; i < len; i++) {
-    byte byteItem = data[i];
-    if (byteItem == 44) {  // Skip ','
-      temporaryImageByteArray[elem] = valueString.toInt();
-      //Serial.printf("---> Saving byte value %u at elem= %u \n", valueString.toInt(), elem);
-      valueString = "";
-      if (elem > SCREEN_RESOLUTION) {
-        Serial.println("");
-        Serial.println("WARNING Data is larger than array. Skipping...");
-        elem = 0;
-      }
-      elem++;
-      continue;
-    }
-    if (isDigit(byteItem)) {
-      valueString += (char)byteItem;
-    }
-  }
-  if ((index + len) == total) {
-    if (elem != (SCREEN_RESOLUTION - 1)) {
-      Serial.println("");
-      Serial.println("WARNING Data is larger than array. Skipping...");
-    }
-    //wipeDisplay();
-    //free(temporaryImageByteArray);
-    elem = 0;
-    Serial.printf(" done: %uB\n", total);
-  }
-}
 
 String getMemoryUsage() {
+  String usage = String(ESP.getFreeHeap());
+  return usage;
+}
+
+String getFullMemoryUsage() {
   String usage = "Total heap: ";
   usage = String(usage + ESP.getHeapSize());
   usage = String(usage + "\nFree heap: ");
@@ -120,6 +75,12 @@ String getMemoryUsage() {
   return usage;
 }
 
+/**
+ * Handles multipart file upload and save the file on spiffs.
+ * Modified from source: https://github.com/Edzelf/Esp-radio
+ * MIT License
+ * Copyright (c) 2019 Ed Smallenburg
+ **/
 void handleFileUpload ( AsyncWebServerRequest *request, String filename,
                         size_t index, uint8_t *data, size_t len, bool final )
 {
@@ -205,14 +166,6 @@ void startServer() {
     request->send(200, "text/plain", getMemoryUsage());
   });
 
-  /**
-     Post byteArray of pixel values and put directly on screen
-  */
-  webServer.on(
-  "/api/image/on-screen", HTTP_POST, [](AsyncWebServerRequest * request) {
-    request->send(200);
-  }, NULL, onUploadImage);
-
   webServer.on("/api/image/upload-single", HTTP_POST, [](AsyncWebServerRequest *request){
     //request->send(200);
   }, handleFileUpload);
@@ -223,10 +176,10 @@ void startServer() {
 }
 
 void startWifi() {
-//  WiFi.begin(ssid, password);
-//  delay(500);
-//  WiFi.mode( WIFI_OFF );
-//  delay(500);
+  WiFi.begin(ssid, password);
+  delay(1000);
+  WiFi.mode( WIFI_OFF );
+  delay(500);
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
     delay(1000);
@@ -236,15 +189,18 @@ void startWifi() {
   Serial.println(WiFi.localIP());
 }
 
-void drawCallback() {
-  display.fillScreen(GxEPD_WHITE);
-}
-
-void showPicture(byte * imagePage, int page, int pagePixelIncrement) {
-}
-
-void clearCallback() {
-  display.fillScreen(GxEPD_WHITE);
+void wipeDisplay() {
+  Serial.println("Initializing e-ink display...");
+  display.setRotation(0);
+  //display.setFont(&FreeMonoBold9pt7b);
+  display.setTextColor(GxEPD_BLACK);
+  display.setFullWindow();
+  display.firstPage();
+  do
+  {
+    display.fillScreen(GxEPD_WHITE);
+  }
+  while (display.nextPage());
 }
 
 // == Functions ==
@@ -255,7 +211,8 @@ void initDisplay_old() {
 }
 
 void initDisplaySpi() {
-  display.init(115200); // uses standard SPI pins, e.g. SCK(18), MISO(19), MOSI(23), SS(5)
+  display.init(0); // 0 avoids this lib to spawn it's own Serial object
+  // uses standard SPI pins, e.g. SCK(18), MISO(19), MOSI(23), SS(5)
   // *** special handling for Waveshare ESP32 Driver board *** //
   // ********************************************************* //
   SPI.end(); // release standard SPI pins, e.g. SCK(18), MISO(19), MOSI(23), SS(5)
@@ -263,7 +220,6 @@ void initDisplaySpi() {
   SPI.begin(13, 12, 14, 15); // map and init SPI pins SCK(13), MISO(12), MOSI(14), SS(15)
   // *** end of special handling for Waveshare ESP32 Driver board *** //
   // **************************************************************** //
-  delay(500);
 }
 
 void listDir(fs::FS &fs, const char * dirname, uint8_t levels) {
@@ -302,18 +258,25 @@ void listFiles()
   listDir(SPIFFS, "/", 0);
 }
 
-void setup() {
-  Serial.begin(115200);
+void drawTestPicture()
+{
+  display.setFullWindow();
+  display.clearScreen(); // use default for white
+  display.drawImage(picture, 0, 0, 800, 480, true, false, true);
+}
 
+void setup() {
+  initDisplaySpi();
+  //Serial.begin(115200);
+  wipeDisplay();
   if (!SPIFFS.begin()) {
     Serial.println("An Error has occurred while mounting SPIFFS");
     return;
   }
   startWifi();
   startServer();
-  // initDisplaySpi();
   listFiles();
-  //display.fillScreen(GxEPD_WHITE);
+  drawTestPicture();
 }
 
 void loop() {}

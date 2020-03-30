@@ -16,16 +16,14 @@ export class ImageService {
 
   public uploadSingleFile(clamped: Uint8ClampedArray) {
     const fileContent = new Uint8ClampedArray(this.byteToBoolByte(clamped));
-    const blob = new Blob([fileContent], { type: 'application/octet-stream', });
+    const blob = new Blob([fileContent], { type: 'application/octet-stream' });
     const file = new File([blob], 'image.bin', { type: 'application/octet-stream', });
 
     const formData = new FormData();
-    formData.append('file', blob);
+    formData.append('file', file);
 
     return this.httpClient.post(`${this.apiURL}/image/upload-single`, formData);
   }
-
-
 
   private byteToBoolByte(clampedArray: Uint8ClampedArray): number[] {
     const boolArray: boolean[] = [];

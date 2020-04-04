@@ -113,6 +113,7 @@ with the device name ```Dual RS232-HS```.
 | TMS       | FTDI AD3        | GPIO14
 | RESET     | FTDI AC2        | EN
 | GND       | FTDI GND        | GND
+| 3V3       | 3V3             |
 
 ## Dependencies
 ### Arduino Framework Dependencies

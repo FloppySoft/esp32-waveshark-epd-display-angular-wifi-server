@@ -4,7 +4,7 @@
 <img src="docs/media/screenshot_main.png" width="50%">
 </p>
 
-Picture frame for Waveshark's [Esp32 driver board](https://www.waveshare.com/product/displays/accessories/driver-boards/e-paper-esp32-driver-board.htm) & an epd "e-ink" display utilizing the [Arduino Framework](https://www.arduino.cc/) on [PlatformIO](https://maker.pro/arduino/tutorial/how-to-use-platformio-in-visual-studio-code-to-program-arduino) & Angular.
+Picture frame for Waveshark's [Esp32 driver board](https://www.waveshare.com/product/displays/accessories/driver-boards/e-paper-esp32-driver-board.htm) & an "e-ink" display utilizing the [Arduino Framework](https://www.arduino.cc/) on [PlatformIO](https://maker.pro/arduino/tutorial/how-to-use-platformio-in-visual-studio-code-to-program-arduino) & Angular.
 
 Work still in progress, but single image upload is already working.
 
@@ -16,22 +16,17 @@ All files to be served are stored within the ESP32's SPIFFS, this project allows
 Sometimes it is not easy for beginners to set up all of this, hence a detailed description.
 
 ### Arduino IDE
-* Install the [Arduino IDE](https://www.arduino.cc/en/Main/Software)
-* Install Esp board libs in the Arduino IDE's board manager
-  * Add this at ```File > Preferences > Additional Board Manager URLs```
-    ```
-    https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
-    ```
-  * Go to ```Tools > Board: xxx > Board Manager```
-  * Scroll down & install 'esp32'.
-  * This will take ages. Go get a drink or something. Visit friends in Paris. Write a postcard.
-* Clone this repo inside your Arduino folder, usually ```C:\Users\<username>\Documents\Arduino\``` on Windows
-* Use Arduino IDE to install all [Arduino dependencies](#arduino-ide-dependencies). Manually that is:
-  * Download all libs from the linked repos (.zip)
-  * In Arduino IDE: ```Sketch > Include Library > Add .ZIP Library```
-  * Now the libs will be found when building
+This project is migrated to PlatformIo. It allows using better tools and still uses the Angular framework and libraries. To setup the "Arduino" part of this project, see [Setup PlatformIO](#setup-platformio)
 
-### Angular
+### Setup PlatformIO
+* Install [VSCode](https://code.visualstudio.com/)
+* Install the [PlatformIO Plugin](https://marketplace.visualstudio.com/items?itemName=platformio.platformio-ide) for VSCode
+* Install the ESP32 libs called ```"Espressif 32"``` in the PlatformIO Plugin section ```Platforms```
+* No need to install other libs like driver, server etc. Platformio does it all. Awesome!
+  * If you wanna maintain these dependencies, look for ```"lib_deps"``` in the ```platformio.ini``` file.
+* Change your ESP32's COM-Port in ```platformio.ini```. You can't find a GUI menu for that settings unlike in the arduino ide.
+
+### Setup Angular
 * Install newest LTS Version of node.js from [here](https://nodejs.org/en/)
 * Install [VSCode](https://code.visualstudio.com/) or your preferred editor
   * Cool VSCode extensions for angular:
@@ -101,7 +96,6 @@ Notice that debugging won't work with the display/spi being enabled.
   ```
 
 ### Debugger Connection
-
 Although some docs indicate to only connect GND, debugging only works also connecting 3V3.
 Please check your own setup for this.
 

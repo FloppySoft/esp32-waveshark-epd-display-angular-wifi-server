@@ -1,26 +1,43 @@
 <div class="row justify-content-md-center">
   <div class="col col-lg-6 col-md-9">
     <mat-card class="mat-elevation-z1">
-      <h3>Heap Info</h3>
-      <mat-card-content>
-        <div class="row">
 
-          <div class="col align-self-center d-flex justify-content-center">
+      <mat-accordion class="mat-elevation-z0">
+        <mat-expansion-panel class="mat-elevation-z0"
+          (opened)="isHeapPolling = true;" (closed)="isHeapPolling = false;"
+          displayMode="flat">
 
-            <!-- Really neat trick to keep text responsively scaling to bootstrap grid container -->
-            <!-- Number need to be guessed & optimized. 500, 180 / y=15 -->
-            <svg viewBox="0 0 500 180">
-              <text class="ascii-plot" x="0" y="0">
-                <!-- Only Firefox can handle a multiline text inside SVG, for Chrome we need to split into single 'tspan' lines: -->
-                <tspan dy="1.1em" x="0" *ngFor="let item of plotArray" >
-                  {{item}}
-                </tspan>
-              </text>
-            </svg>
+          <mat-expansion-panel-header>
+            <div class="col-5 d-flex align-self-center justify-content-start">
+              <h2 class="description-headline">Heap Info</h2>
+            </div>
+          </mat-expansion-panel-header>
+
+          <div class="row ">
+            <mat-card-content>
+              <div class="row">
+
+                <div class="col align-self-center d-flex justify-content-center">
+
+                  <!-- Really neat trick to keep text responsively scaling to bootstrap grid container -->
+                  <!-- Number need to be guessed & optimized. 500, 180 / y=15 -->
+                  <svg viewBox="0 0 500 180">
+                    <text class="ascii-plot" x="0" y="0">
+                      <!-- Only Firefox can handle a multiline text inside SVG, for Chrome we need to split into single 'tspan' lines: -->
+                      <tspan dy="1.1em" x="0" *ngFor="let item of plotArray" >
+                        {{item}}
+                      </tspan>
+                    </text>
+                  </svg>
+
+                </div>
+              </div>
+            </mat-card-content>
 
           </div>
-        </div>
-      </mat-card-content>
+        </mat-expansion-panel>
+      </mat-accordion>
+
     </mat-card>
   </div>
 </div>

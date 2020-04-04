@@ -4,7 +4,6 @@ import { timer } from 'rxjs';
 import { SystemService } from '../core/system.service';
 import { environment } from 'src/environments/environment';
 
-
 @Component({
   selector: 'app-settings',
   templateUrl: './settings.component.html',
@@ -15,6 +14,7 @@ export class SettingsComponent implements OnInit {
   plotSize = 60;
   heapFifo: number[] = [];
   isWaiting = false;
+  isHeapPolling = false;
   plot = 'initial';
   plotArray: string[];
 
@@ -32,10 +32,12 @@ export class SettingsComponent implements OnInit {
       for (let i = 1; i <= this.plotSize; i++) {
         this.heapFifo.push(0);
       }
-      const source = timer(2000, 2000);
+      const source = timer(1000, 1000);
       const timeSeries = source.subscribe(
         (timerValue) => {
-          this.updateGraph();
+          if ( this.isHeapPolling) {
+            this.updateGraph();
+          }
         });
     }
   }

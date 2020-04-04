@@ -1,21 +1,16 @@
-# Esp32 Waveshark Epd Display Angular Wifi Server
-Picture frame for Waveshark's [Esp32 driver board](https://www.waveshare.com/product/displays/accessories/driver-boards/e-paper-esp32-driver-board.htm) & an epd "e-ink" display utilizing Arduino IDE & Angular
+# Esp32 Picture Frame: Angular Frontend for E-Ink Display
 
-## WORK IN PROGRESS - BUG IN USED LIBS LET THE ESP32 CRASH
-I currently work hard on a workaround for the display lib crashing on displaying a picture. Might be a memory issue, allthough there is plenty during runtime. Possible workarounds
-* Directly using SPIFFS to reduce memory usage
-* Investigating ```free()``` crashing on ESP32
-* Using the native and hard to maintain driver from Waveshare
-
-Until this is fixed, enjoy a nice Angular frontend for a microcontroller being compressed into ~100 kB!
-
-## Overview
-
-The frontend is served by the ESP32 and allows uploading images to the picture frame. The design is kept material-like utilizing  [Angular Material Components](https://material.angular.io/). 
 <p align="center">
 <img src="docs/media/screenshot_main.png" width="50%">
 </p>
-All files to be served are stored within the ESP32's SPIFFS, this project allows easily building all frontend artifacts into pre-compressed files.
+
+Picture frame for Waveshark's [Esp32 driver board](https://www.waveshare.com/product/displays/accessories/driver-boards/e-paper-esp32-driver-board.htm) & an epd "e-ink" display utilizing the [Arduino Framework](https://www.arduino.cc/) on [PlatformIO](https://maker.pro/arduino/tutorial/how-to-use-platformio-in-visual-studio-code-to-program-arduino) & Angular.
+
+Work still in progress, but single image upload is already working.
+
+## Overview
+The frontend is served by the ESP32 and allows uploading images to the picture frame. The design is kept material-like utilizing  [Angular Material Components](https://material.angular.io/). 
+All files to be served are stored within the ESP32's SPIFFS, this project allows easily building all frontend artifacts into pre-compressed files with just one command, see [build angular](#Build-Angular-Frontend)
 
 ## Developer Setup
 Sometimes it is not easy for beginners to set up all of this, hence a detailed description.
@@ -66,7 +61,7 @@ const char* password = "Your Wifi Password";
 ```
 
 ## Build
-### Angular
+### Build Angular Frontend
 Make sure your terminal is on the angular root path - that is ```src/angular/picture-frame-frontend``` - and run
 ```
 npm run build-arduino
@@ -75,9 +70,11 @@ npm run build-arduino
 ### Arduino / Esp32
 
 ## Debugging the ESP32
-This holds true using a FTDI2232HL "Minimodule", in this case a 
+The following holds true using a FTDI2232HL "Minimodule", in this case a 
 [cheap $10 breakout](https://www.aliexpress.com/i/32958712445.html) 
 with the device name ```Dual RS232-HS```.
+
+Notice that debugging won't work with the display/spi being enabled. 
 
 * Install the ```platformio-ide``` plugin in VSCode.
 * Import the project into PlatformIO
@@ -105,6 +102,9 @@ with the device name ```Dual RS232-HS```.
 
 ### Debugger Connection
 
+Although some docs indicate to only connect GND, debugging only works also connecting 3V3.
+Please check your own setup for this.
+
 | JTAG Name | FTDI 2232HL Pin | ESP32 Pin |
 | --------- | --------------- | --------- |
 | TCK       | FTDI AD0        | GPIO13
@@ -113,7 +113,7 @@ with the device name ```Dual RS232-HS```.
 | TMS       | FTDI AD3        | GPIO14
 | RESET     | FTDI AC2        | EN
 | GND       | FTDI GND        | GND
-| 3V3       | 3V3             |
+|           | 3V3             | 3V3
 
 ## Dependencies
 ### Arduino Framework Dependencies

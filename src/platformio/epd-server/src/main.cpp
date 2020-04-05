@@ -22,7 +22,6 @@ const char *password = "My totally secure password";
 #define PAGE_STEPS 16
 #define SELECTED_IMAGE_PATH "/image.bin"
 
-
 /*
 GxEPD2 setup.
 Page size is set by division into HEIGHT-pieces, e.g. 16 -> GxEPD2_BW<GxEPD2_750_T7, GxEPD2_750_T7::HEIGHT / 16>
@@ -31,7 +30,6 @@ Page size is set by division into HEIGHT-pieces, e.g. 16 -> GxEPD2_BW<GxEPD2_750
 GxEPD2_BW<GxEPD2_750_T7, GxEPD2_750_T7::HEIGHT / PAGE_STEPS> display(GxEPD2_750_T7(/*CS=*/15, /*DC=*/27, /*RST=*/26, /*BUSY=*/25));
 
 AsyncWebServer webServer(80);
-
 
 static uint8_t *framebuffer;
 bool isImageRefreshPending = false;
@@ -123,7 +121,7 @@ String getFullMemoryUsage()
  * Copyright (c) 2019 Ed Smallenburg
  **/
 void handleSingleFileUpload(AsyncWebServerRequest *request, String filename,
-                      size_t index, uint8_t *data, size_t len, bool final)
+                            size_t index, uint8_t *data, size_t len, bool final)
 {
   Serial.println("upload handle starting.");
   String path;
@@ -133,14 +131,14 @@ void handleSingleFileUpload(AsyncWebServerRequest *request, String filename,
   if (index == 0)
   {
     path = String("/") + filename;
-    SPIFFS.remove(path);                        // Delete old file
-    f = SPIFFS.open(path, "w");                 // Create new file
+    SPIFFS.remove(path);        // Delete old file
+    f = SPIFFS.open(path, "w"); // Create new file
     totallength = 0;
     lastindex = 0;
   }
   if (len) // Something to write?
   {
-    if ((index != lastindex) || (index == 0))   // New chunk?
+    if ((index != lastindex) || (index == 0)) // New chunk?
     {
       f.write(data, len);
       totallength += len;
@@ -159,7 +157,7 @@ void handleSingleFileUpload(AsyncWebServerRequest *request, String filename,
  * Sets up all REST endpoints and their responses.
  * Angular artifacts are treated specially here to allow pre-compression.
  */
-void startServer()
+void startWebserver()
 {
   /*
   Server reqeusts for Angular artifacts
@@ -195,6 +193,12 @@ void startServer()
     response->addHeader("Content-Encoding", "gzip");
     request->send(response);
   });
+  // Handle serving images from SPIFFS to /img/<filename>
+  webServer.on("^\\/img\\/([a-zA-Z0-9.]+)$", HTTP_GET, [](AsyncWebServerRequest *request) {
+    String filename = "/img/" + request->pathArg(0);
+    AsyncWebServerResponse *response = request->beginResponse(SPIFFS, filename, "image/jpeg");
+    request->send(response);
+  });
 
   /*
   API: System
@@ -206,10 +210,11 @@ void startServer()
   /*
   API: Image
   */
-  webServer.on("/api/image/upload-single", HTTP_POST, [](AsyncWebServerRequest *request) {
-    //request->send(200);
-  },
-               handleSingleFileUpload);
+  webServer.on(
+      "/api/image/upload-single", HTTP_POST, [](AsyncWebServerRequest *request) {
+        //request->send(200);
+      },
+      handleSingleFileUpload);
 
   webServer.on("/api/image/show-selected", HTTP_GET, [](AsyncWebServerRequest *request) {
     request->send(200, "text/plain", handleSelectedImageRefresh());
@@ -331,7 +336,7 @@ void setup()
     return;
   }
   initWifi();
-  startServer();
+  startWebserver();
   listFiles();
   //drawTestPicture();
   //showSelectedImage();

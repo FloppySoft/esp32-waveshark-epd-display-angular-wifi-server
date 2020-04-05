@@ -25,6 +25,7 @@ export class SinglePicComponent implements OnInit {
   isPreview = false;
   adjustBrightness = 100;
   adjustContrast = 100;
+  adjustEqualize = 1;
 
   constructor(
     private imageService: ImageService,
@@ -81,7 +82,6 @@ export class SinglePicComponent implements OnInit {
       const ctx = this.canvas.nativeElement.getContext('2d') as CanvasRenderingContext2D;
       this.canvas.nativeElement.width = target.x;
       this.canvas.nativeElement.height = target.y;
-      ctx.filter = `grayscale(100%) brightness(${this.adjustBrightness}%) contrast(${this.adjustContrast}%)`;
       ctx.drawImage(
         image,              // img    - Image to draw on canvas
         offset.x,           // sx     - Offset position, if aspect ratio not fitting
@@ -96,7 +96,9 @@ export class SinglePicComponent implements OnInit {
 
       const imageData = ctx.getImageData(0, 0, target.x, target.y);
       const color = imageData.data;
-      const bw = this.extractGreyscaleImageBytes(color);
+      let bw = this.rgbaToGreyscale(color);
+      // TODO: Do image processing here
+      bw = this.equalize(bw);
       this.byteArray = this.dither(bw);
       const ditheredRgb = this.greyscaleToRbga(this.byteArray);
       const ditheredImage = new ImageData(ditheredRgb, this.screenSize.x, this.screenSize.y);
@@ -106,17 +108,69 @@ export class SinglePicComponent implements OnInit {
     image.src = src;
   }
 
-  private extractGreyscaleImageBytes(rgbInput: Uint8ClampedArray): Uint8ClampedArray{
-    const greyScaleImageBytes = rgbInput.filter((elem, i) => {
-      return (i % 4) === 0;
+  private equalize(bwInput: Uint8ClampedArray): Uint8ClampedArray {
+    const cdf = this.cdf(this.histogram(bwInput));
+    const equalized = bwInput.map(
+      (brightness) => {
+        // User can mix between 100% equalized image and original with adjustEqualize slider.
+        return Math.floor((255 * cdf[brightness]) * this.adjustEqualize + brightness * (1 - this.adjustEqualize));
+      }
+    );
+    return equalized;
+  }
+
+  /**
+   * Calculates the histogram of a greyscale image array.
+   * @param img 8 bit black and white image array
+   */
+  private histogram(img: Uint8ClampedArray): number[] {
+    const pixels = img.length;
+    let histogram: number[] = new Array(256).fill(0);
+    img.forEach(
+      (element) => {
+        histogram[element] = histogram[element] + 1;
     });
-/*     for (let i = 0; i < this.screenSize.x * this.screenSize.y; i++) {
-      greyScaleImageBytes.push(rgbInput[i * 4]);
-    } */
+    // Normalize histogram
+    histogram = histogram.map(
+      (histogramValue) => {
+        return histogramValue / pixels;
+      }
+    );
+    return histogram;
+  }
+
+  /**
+   * Cumulative distribution, integral of histogram
+   * @param histogram Normalized histogram
+   */
+  private cdf(histogram: number[]): number[] {
+    const cdf: number[] = new Array(256).fill(0);
+    let sum = 0;
+    histogram.forEach(
+      (histogramValue, index) => {
+        sum = sum + histogramValue;
+        cdf[index] = sum;
+      }
+    );
+    return cdf;
+  }
+
+  /**
+   * Greyscale needs to be weighted from color values.
+   * See https://en.wikipedia.org/wiki/Grayscale for details
+   * @param rgbInput RGBA Array
+   */
+  private rgbaToGreyscale(rgbInput: Uint8ClampedArray): Uint8ClampedArray {
+    let greyScaleImageBytes = new Uint8ClampedArray(Math.floor(rgbInput.length / 4)).fill(0);
+    greyScaleImageBytes = greyScaleImageBytes.map(
+      (value, index) => {
+        return 0.2126 * rgbInput[index * 4] + 0.7152 * rgbInput[index * 4 + 1] + 0.0722 * rgbInput[index * 4 + 2];
+      }
+    );
     return greyScaleImageBytes;
   }
 
-  private greyscaleToRbga(bwInput: Uint8ClampedArray): Uint8ClampedArray{
+  private greyscaleToRbga(bwInput: Uint8ClampedArray): Uint8ClampedArray {
     const color: number[] = [];
     for (const elem of bwInput) {
       color.push(elem);

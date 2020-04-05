@@ -17,8 +17,6 @@ const char *password = "My totally secure password";
 #endif
 
 // TODO: Refactor into system settings or config files
-#define SCREEN_SIZE_X 800
-#define SCREEN_SIZE_Y 480
 #define PAGE_STEPS 16
 #define SELECTED_IMAGE_PATH "/image.bin"
 
@@ -120,8 +118,8 @@ String getFullMemoryUsage()
  * MIT License
  * Copyright (c) 2019 Ed Smallenburg
  **/
-void handleSingleFileUpload(AsyncWebServerRequest *request, String filename,
-                            size_t index, uint8_t *data, size_t len, bool final)
+void handleFileUpload(AsyncWebServerRequest *request, String filename,
+                            size_t index, uint8_t *data, size_t len, bool final, String folder)
 {
   Serial.println("upload handle starting.");
   String path;
@@ -130,7 +128,7 @@ void handleSingleFileUpload(AsyncWebServerRequest *request, String filename,
   static size_t lastindex;
   if (index == 0)
   {
-    path = String("/") + filename;
+    path = folder + filename;
     SPIFFS.remove(path);        // Delete old file
     f = SPIFFS.open(path, "w"); // Create new file
     totallength = 0;
@@ -151,6 +149,23 @@ void handleSingleFileUpload(AsyncWebServerRequest *request, String filename,
     request->send(200, "OK");
     isImageRefreshPending = true;
   }
+}
+
+
+void handleSingleFileUpload(AsyncWebServerRequest *request, String filename,
+                            size_t index, uint8_t *data, size_t len, bool final)
+{
+  // Filename is managed on backend to avoide client side issues.
+  String folder = String("");
+  filename = String("SELECTED_IMAGE_PATH"); // this API endpoint shall only store this file
+  handleFileUpload(request, filename, index, data, len, final, folder);
+}
+
+void handleGalleryFileUpload(AsyncWebServerRequest *request, String filename,
+                            size_t index, uint8_t *data, size_t len, bool final)
+{
+  String folder = String("/img/");
+  handleFileUpload(request, filename, index, data, len, final, folder);
 }
 
 /**
@@ -193,7 +208,7 @@ void startWebserver()
     response->addHeader("Content-Encoding", "gzip");
     request->send(response);
   });
-  // Handle serving images from SPIFFS to /img/<filename>
+  // Handle serving images from SPIFFS at /img/<filename>
   webServer.on("^\\/img\\/([a-zA-Z0-9.]+)$", HTTP_GET, [](AsyncWebServerRequest *request) {
     String filename = "/img/" + request->pathArg(0);
     AsyncWebServerResponse *response = request->beginResponse(SPIFFS, filename, "image/jpeg");
@@ -215,6 +230,12 @@ void startWebserver()
         //request->send(200);
       },
       handleSingleFileUpload);
+
+  webServer.on(
+      "/api/image/upload-gallery", HTTP_POST, [](AsyncWebServerRequest *request) {
+        //request->send(200);
+      },
+      handleGalleryFileUpload);
 
   webServer.on("/api/image/show-selected", HTTP_GET, [](AsyncWebServerRequest *request) {
     request->send(200, "text/plain", handleSelectedImageRefresh());

@@ -9,6 +9,11 @@ mat-expansion-panel{
   padding-bottom: 8px;
 }
 
+:host ::ng-deep .mat-expansion-panel-body  {
+  padding-left: 15px;
+  padding-right: 15px;;
+}
+
 .aspect-ration-container {
   display: block;
   width: 100%;
@@ -59,4 +64,8 @@ mat-expansion-panel{
 
 .adjust-description {
   color: rgba(0,0,0,.54);
+}
+
+.mat-slider {
+  width: 100%;
 }

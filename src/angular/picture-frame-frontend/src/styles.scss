@@ -9,6 +9,16 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
   margin: 15px;
 }
 
+.my-3 {
+  margin-top: 15px;
+  margin-bottom: 15px;
+}
+
+.mx-3 {
+  margin-left: 15px;
+  margin-right: 15px;
+}
+
 // Revert margins e.g. for background images
 .no-margin {
   margin: -15px;

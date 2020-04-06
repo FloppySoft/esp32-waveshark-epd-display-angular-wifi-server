@@ -17,11 +17,8 @@ const char *password = "My totally secure password";
 #endif
 
 // TODO: Refactor into system settings or config files
-#define SCREEN_SIZE_X 800
-#define SCREEN_SIZE_Y 480
 #define PAGE_STEPS 16
 #define SELECTED_IMAGE_PATH "/image.bin"
-
 
 /*
 GxEPD2 setup.
@@ -31,7 +28,6 @@ Page size is set by division into HEIGHT-pieces, e.g. 16 -> GxEPD2_BW<GxEPD2_750
 GxEPD2_BW<GxEPD2_750_T7, GxEPD2_750_T7::HEIGHT / PAGE_STEPS> display(GxEPD2_750_T7(/*CS=*/15, /*DC=*/27, /*RST=*/26, /*BUSY=*/25));
 
 AsyncWebServer webServer(80);
-
 
 static uint8_t *framebuffer;
 bool isImageRefreshPending = false;
@@ -122,8 +118,8 @@ String getFullMemoryUsage()
  * MIT License
  * Copyright (c) 2019 Ed Smallenburg
  **/
-void handleSingleFileUpload(AsyncWebServerRequest *request, String filename,
-                      size_t index, uint8_t *data, size_t len, bool final)
+void handleFileUpload(AsyncWebServerRequest *request, String filename,
+                            size_t index, uint8_t *data, size_t len, bool final, String folder)
 {
   Serial.println("upload handle starting.");
   String path;
@@ -132,15 +128,15 @@ void handleSingleFileUpload(AsyncWebServerRequest *request, String filename,
   static size_t lastindex;
   if (index == 0)
   {
-    path = String("/") + filename;
-    SPIFFS.remove(path);                        // Delete old file
-    f = SPIFFS.open(path, "w");                 // Create new file
+    path = folder + filename;
+    SPIFFS.remove(path);        // Delete old file
+    f = SPIFFS.open(path, "w"); // Create new file
     totallength = 0;
     lastindex = 0;
   }
   if (len) // Something to write?
   {
-    if ((index != lastindex) || (index == 0))   // New chunk?
+    if ((index != lastindex) || (index == 0)) // New chunk?
     {
       f.write(data, len);
       totallength += len;
@@ -155,11 +151,28 @@ void handleSingleFileUpload(AsyncWebServerRequest *request, String filename,
   }
 }
 
+
+void handleSingleFileUpload(AsyncWebServerRequest *request, String filename,
+                            size_t index, uint8_t *data, size_t len, bool final)
+{
+  // Filename is managed on backend to avoide client side issues.
+  String folder = String("");
+  filename = String("SELECTED_IMAGE_PATH"); // this API endpoint shall only store this file
+  handleFileUpload(request, filename, index, data, len, final, folder);
+}
+
+void handleGalleryFileUpload(AsyncWebServerRequest *request, String filename,
+                            size_t index, uint8_t *data, size_t len, bool final)
+{
+  String folder = String("/img/");
+  handleFileUpload(request, filename, index, data, len, final, folder);
+}
+
 /**
  * Sets up all REST endpoints and their responses.
  * Angular artifacts are treated specially here to allow pre-compression.
  */
-void startServer()
+void startWebserver()
 {
   /*
   Server reqeusts for Angular artifacts
@@ -195,6 +208,12 @@ void startServer()
     response->addHeader("Content-Encoding", "gzip");
     request->send(response);
   });
+  // Handle serving images from SPIFFS at /img/<filename>
+  webServer.on("^\\/img\\/([a-zA-Z0-9.]+)$", HTTP_GET, [](AsyncWebServerRequest *request) {
+    String filename = "/img/" + request->pathArg(0);
+    AsyncWebServerResponse *response = request->beginResponse(SPIFFS, filename, "image/jpeg");
+    request->send(response);
+  });
 
   /*
   API: System
@@ -206,10 +225,17 @@ void startServer()
   /*
   API: Image
   */
-  webServer.on("/api/image/upload-single", HTTP_POST, [](AsyncWebServerRequest *request) {
-    //request->send(200);
-  },
-               handleSingleFileUpload);
+  webServer.on(
+      "/api/image/upload-single", HTTP_POST, [](AsyncWebServerRequest *request) {
+        //request->send(200);
+      },
+      handleSingleFileUpload);
+
+  webServer.on(
+      "/api/image/upload-gallery", HTTP_POST, [](AsyncWebServerRequest *request) {
+        //request->send(200);
+      },
+      handleGalleryFileUpload);
 
   webServer.on("/api/image/show-selected", HTTP_GET, [](AsyncWebServerRequest *request) {
     request->send(200, "text/plain", handleSelectedImageRefresh());
@@ -331,7 +357,7 @@ void setup()
     return;
   }
   initWifi();
-  startServer();
+  startWebserver();
   listFiles();
   //drawTestPicture();
   //showSelectedImage();

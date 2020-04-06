@@ -13,18 +13,21 @@ export interface Vector2D { // TODO: Move reusable interface into root
 })
 export class SinglePicComponent implements OnInit {
   @ViewChild('editCanvas', { static: true }) canvas: ElementRef<HTMLCanvasElement>;
-  descriptionText = 'Add Picture';
+  descriptionText = 'Upload New Picture';
   screenSize = { // TODO: Move into global config singleton
     x: 800,
     y: 480,
   };
-  sourceUrl = null;
-  previewUrl = null;
+  sourceUrl: string | ArrayBuffer = null;
+  previewUrl: string = null;
+  preprocessedImage: Uint8ClampedArray;
+  cdfArray: number[];
   byteArray: Uint8ClampedArray;
   isDragging = false;
   isPreview = false;
   adjustBrightness = 100;
   adjustContrast = 100;
+  adjustEqualize = 1;
 
   constructor(
     private imageService: ImageService,
@@ -35,7 +38,7 @@ export class SinglePicComponent implements OnInit {
 
   onFileSelect(selectFileEvent: any) {
     if (selectFileEvent.target.files && selectFileEvent.target.files[0]) {
-      this.previewImage(selectFileEvent.target.files[0]);
+      this.onNewImageFile(selectFileEvent.target.files[0]);
     }
   }
 
@@ -44,25 +47,29 @@ export class SinglePicComponent implements OnInit {
     if (!imageFile.type.match(/image.*/)) {
       return;
     }
-    this.previewImage(imageFile);
+    this.onNewImageFile(imageFile);
   }
 
   onTransmit(): void {
-    this.imageService.uploadSingleFile(this.byteArray).subscribe(() => {
+    this.imageService.uploadSingleImage(this.byteArray).subscribe(() => {
 
     });
   }
 
-  private previewImage(file: any): void {
+  private onNewImageFile(file: any): void {
     const reader = new FileReader();
     reader.onload = (event) => {
-      this.sourceUrl = event.target.result; // Set preview image
-      this.render(this.sourceUrl);
+      this.preprocessImage(event.target.result); // Process image on invisible canvas
     },
       reader.readAsDataURL(file);
   }
 
-  render(src) {
+  /**
+   * Preprocesses an image & obtains a smaller image to be further processed.
+   * Uses global variables.
+   * @param rawImageUrl Source ImageUrl to be preprocessed
+   */
+  private preprocessImage(rawImageUrl: string | ArrayBuffer): void{
     const image = new Image();
     image.onload = () => {
       const size: Vector2D = { // Size of input image
@@ -81,7 +88,6 @@ export class SinglePicComponent implements OnInit {
       const ctx = this.canvas.nativeElement.getContext('2d') as CanvasRenderingContext2D;
       this.canvas.nativeElement.width = target.x;
       this.canvas.nativeElement.height = target.y;
-      ctx.filter = `grayscale(100%) brightness(${this.adjustBrightness}%) contrast(${this.adjustContrast}%)`;
       ctx.drawImage(
         image,              // img    - Image to draw on canvas
         offset.x,           // sx     - Offset position, if aspect ratio not fitting
@@ -93,30 +99,96 @@ export class SinglePicComponent implements OnInit {
         target.x,  // width  - Drawing width on canvas
         target.y,  // heigt
       );
-
+      // Store cropped & resized color image
+      this.sourceUrl = this.canvas.nativeElement.toDataURL();
       const imageData = ctx.getImageData(0, 0, target.x, target.y);
       const color = imageData.data;
-      const bw = this.extractGreyscaleImageBytes(color);
+      const bw = this.rgbaToGreyscale(color);
+      this.preprocessedImage = bw;
+      this.cdfArray = this.cdf(this.histogram(bw));
+      const bwRgb = this.greyscaleToRbga(bw);
+      const bwData = new ImageData(bwRgb, this.screenSize.x, this.screenSize.y);
+      ctx.putImageData(bwData, 0, 0);
+      this.render();
+    };
+    image.src = rawImageUrl as string;
+  }
+
+
+
+  render(): void {
+      const bw = this.equalize(this.preprocessedImage);
       this.byteArray = this.dither(bw);
       const ditheredRgb = this.greyscaleToRbga(this.byteArray);
       const ditheredImage = new ImageData(ditheredRgb, this.screenSize.x, this.screenSize.y);
+      const ctx = this.canvas.nativeElement.getContext('2d') as CanvasRenderingContext2D;
       ctx.putImageData(ditheredImage, 0, 0);
-      this.previewUrl = this.canvas.nativeElement.toDataURL('image/jpeg');
-    };
-    image.src = src;
+      this.previewUrl = this.canvas.nativeElement.toDataURL();
   }
 
-  private extractGreyscaleImageBytes(rgbInput: Uint8ClampedArray): Uint8ClampedArray{
-    const greyScaleImageBytes = rgbInput.filter((elem, i) => {
-      return (i % 4) === 0;
+  private equalize(bwInput: Uint8ClampedArray): Uint8ClampedArray {
+
+    const equalized = bwInput.map(
+      (brightness) => {
+        // User can mix between 100% equalized image and original with adjustEqualize slider.
+        return Math.floor((255 * this.cdfArray[brightness]) * this.adjustEqualize + brightness * (1 - this.adjustEqualize));
+      }
+    );
+    return equalized;
+  }
+
+  /**
+   * Calculates the histogram of a greyscale image array.
+   * @param img 8 bit black and white image array
+   */
+  private histogram(img: Uint8ClampedArray): number[] {
+    const pixels = img.length;
+    let histogram: number[] = new Array(256).fill(0);
+    img.forEach(
+      (element) => {
+        histogram[element] = histogram[element] + 1;
     });
-/*     for (let i = 0; i < this.screenSize.x * this.screenSize.y; i++) {
-      greyScaleImageBytes.push(rgbInput[i * 4]);
-    } */
+    // Normalize histogram
+    histogram = histogram.map(
+      (histogramValue) => {
+        return histogramValue / pixels;
+      }
+    );
+    return histogram;
+  }
+
+  /**
+   * Cumulative distribution, integral of histogram
+   * @param histogram Normalized histogram
+   */
+  private cdf(histogram: number[]): number[] {
+    const cdf: number[] = new Array(256).fill(0);
+    let sum = 0;
+    histogram.forEach(
+      (histogramValue, index) => {
+        sum = sum + histogramValue;
+        cdf[index] = sum;
+      }
+    );
+    return cdf;
+  }
+
+  /**
+   * Greyscale needs to be weighted from color values.
+   * See https://en.wikipedia.org/wiki/Grayscale for details
+   * @param rgbInput RGBA Array
+   */
+  private rgbaToGreyscale(rgbInput: Uint8ClampedArray): Uint8ClampedArray {
+    let greyScaleImageBytes = new Uint8ClampedArray(Math.floor(rgbInput.length / 4)).fill(0);
+    greyScaleImageBytes = greyScaleImageBytes.map(
+      (value, index) => {
+        return 0.2126 * rgbInput[index * 4] + 0.7152 * rgbInput[index * 4 + 1] + 0.0722 * rgbInput[index * 4 + 2];
+      }
+    );
     return greyScaleImageBytes;
   }
 
-  private greyscaleToRbga(bwInput: Uint8ClampedArray): Uint8ClampedArray{
+  private greyscaleToRbga(bwInput: Uint8ClampedArray): Uint8ClampedArray {
     const color: number[] = [];
     for (const elem of bwInput) {
       color.push(elem);
@@ -126,24 +198,6 @@ export class SinglePicComponent implements OnInit {
     }
     return new Uint8ClampedArray(color);
   }
-
-  private toBlob(): void{
-    /* const ctx = this.canvas.nativeElement.getContext('2D') as CanvasRenderingContext2D;
-    const bytes = ctx.getImageData(0, 0, this.screenSize.x, this.screenSize.y).data; */
-    const b64String = this.canvas.nativeElement.toDataURL('image/jpeg');
-    const b64RawString = b64String.replace(/data:image\/jpeg;base64,/g, '');
-  }
-
-  private dataURItoBlob(dataURI) {
-    const byteString = window.atob(dataURI);
-    const arrayBuffer = new ArrayBuffer(byteString.length);
-    const int8Array = new Uint8Array(arrayBuffer);
-    for (let i = 0; i < byteString.length; i++) {
-      int8Array[i] = byteString.charCodeAt(i);
-    }
-    const blob = new Blob([int8Array], { type: 'image/jpeg' });
-    return blob;
- }
 
   private coverCrop(size: Vector2D, target: Vector2D): Vector2D {
     // Handle aspect ratio of input like a object-fit: cover

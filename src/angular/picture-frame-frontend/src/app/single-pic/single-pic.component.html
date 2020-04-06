@@ -18,24 +18,25 @@
 
       <mat-accordion class="mat-elevation-z0">
         <mat-expansion-panel class="mat-elevation-z0" [disabled]="!sourceUrl"
-          (opened)="isPreview = true; descriptionText='Adjust'" (closed)="isPreview = false; descriptionText='Add Picture'"
+          (opened)="isPreview = true; descriptionText='Adjust Your Image:'" (closed)="isPreview = false; descriptionText='Upload New Picture'"
           displayMode="flat">
 
           <mat-expansion-panel-header>
-            <div class="col-5 d-flex justify-content-start">
               <h2 class="description-headline">{{descriptionText}}</h2>
-            </div>
 
             <div *ngIf="sourceUrl" class="adjust-description col align-self-center d-flex justify-content-end">
               adjust
             </div>
           </mat-expansion-panel-header>
 
-          <div class="row image-adjust-controls">
-            <div class="col d-flex  justify-content-center">
+          <div class="row mx-3 justify-content-center image-adjust-controls">
+            <div class="col-2 align-self-center d-flex  justify-content-start">
+              Equalize
+            </div>
+            <div class="col-8 d-flex  justify-content-end">
               <mat-slider value="1" min="0" max="1" step="0.1" (input)="adjustEqualize = $event.value; render(sourceUrl)">
               </mat-slider>
-              <mat-icon>graphic_eq</mat-icon>
+              <mat-icon class="adjust-slider align-self-center">graphic_eq</mat-icon>
             </div>
 <!--             <div class="col d-flex justify-content-center">
               <mat-slider value="100" min="70" max="130" (input)="adjustBrightness = $event.value; render(sourceUrl)">

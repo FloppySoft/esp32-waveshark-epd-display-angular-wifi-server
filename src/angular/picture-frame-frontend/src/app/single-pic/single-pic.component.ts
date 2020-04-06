@@ -13,7 +13,7 @@ export interface Vector2D { // TODO: Move reusable interface into root
 })
 export class SinglePicComponent implements OnInit {
   @ViewChild('editCanvas', { static: true }) canvas: ElementRef<HTMLCanvasElement>;
-  descriptionText = 'Add Picture';
+  descriptionText = 'Upload New Picture';
   screenSize = { // TODO: Move into global config singleton
     x: 800,
     y: 480,

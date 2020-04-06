@@ -34,21 +34,33 @@
               Equalize
             </div>
             <div class="col-8 d-flex  justify-content-end">
-              <mat-slider value="1" min="0" max="1" step="0.1" (input)="adjustEqualize = $event.value; render(sourceUrl)">
+              <mat-slider value="1" min="0.0" max="1.0" step="0.1" (input)="adjustEqualize = $event.value; render()">
               </mat-slider>
               <mat-icon class="adjust-slider align-self-center">graphic_eq</mat-icon>
             </div>
-<!--             <div class="col d-flex justify-content-center">
-              <mat-slider value="100" min="70" max="130" (input)="adjustBrightness = $event.value; render(sourceUrl)">
-              </mat-slider>
-              <mat-icon>brightness_high</mat-icon>
-            </div>
-            <div class="col d-flex justify-content-center">
-              <mat-slider value="100" min="80" max="120" (input)="adjustContrast = $event.value; render(sourceUrl)">
-              </mat-slider>
-              <mat-icon>compare</mat-icon>
-            </div> -->
           </div>
+
+          <div class="row mx-3 justify-content-center image-adjust-controls">
+            <div class="col-2 align-self-center d-flex  justify-content-start">
+              Brightness
+            </div>
+            <div class="col-8 d-flex  justify-content-end">
+              <mat-slider value="100" min="70" max="130" (input)="adjustBrightness = $event.value; render()">
+              </mat-slider>
+              <mat-icon class="adjust-slider align-self-center">brightness_high</mat-icon>
+            </div>
+          </div>
+
+            <div class="row mx-3 justify-content-center image-adjust-controls">
+              <div class="col-2 align-self-center d-flex  justify-content-start">
+                Contrast
+              </div>
+              <div class="col-8 d-flex  justify-content-end">
+                <mat-slider value="100" min="70" max="130" (input)="adjustContrast = $event.value; render()">
+                </mat-slider>
+                <mat-icon class="adjust-slider align-self-center">compare</mat-icon>
+              </div>
+            </div>
         </mat-expansion-panel>
       </mat-accordion>
 

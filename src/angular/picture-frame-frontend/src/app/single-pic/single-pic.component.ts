@@ -18,8 +18,10 @@ export class SinglePicComponent implements OnInit {
     x: 800,
     y: 480,
   };
-  sourceUrl = null;
-  previewUrl = null;
+  sourceUrl: string | ArrayBuffer = null;
+  previewUrl: string = null;
+  preprocessedImage: Uint8ClampedArray;
+  cdfArray: number[];
   byteArray: Uint8ClampedArray;
   isDragging = false;
   isPreview = false;
@@ -36,7 +38,7 @@ export class SinglePicComponent implements OnInit {
 
   onFileSelect(selectFileEvent: any) {
     if (selectFileEvent.target.files && selectFileEvent.target.files[0]) {
-      this.previewImage(selectFileEvent.target.files[0]);
+      this.onNewImageFile(selectFileEvent.target.files[0]);
     }
   }
 
@@ -45,7 +47,7 @@ export class SinglePicComponent implements OnInit {
     if (!imageFile.type.match(/image.*/)) {
       return;
     }
-    this.previewImage(imageFile);
+    this.onNewImageFile(imageFile);
   }
 
   onTransmit(): void {
@@ -54,16 +56,20 @@ export class SinglePicComponent implements OnInit {
     });
   }
 
-  private previewImage(file: any): void {
+  private onNewImageFile(file: any): void {
     const reader = new FileReader();
     reader.onload = (event) => {
-      this.sourceUrl = event.target.result; // Set preview image
-      this.render(this.sourceUrl);
+      this.preprocessImage(event.target.result); // Process image on invisible canvas
     },
       reader.readAsDataURL(file);
   }
 
-  render(src) {
+  /**
+   * Preprocesses an image & obtains a smaller image to be further processed.
+   * Uses global variables.
+   * @param rawImageUrl Source ImageUrl to be preprocessed
+   */
+  private preprocessImage(rawImageUrl: string | ArrayBuffer): void{
     const image = new Image();
     image.onload = () => {
       const size: Vector2D = { // Size of input image
@@ -93,27 +99,39 @@ export class SinglePicComponent implements OnInit {
         target.x,  // width  - Drawing width on canvas
         target.y,  // heigt
       );
-
+      // Store cropped & resized color image
+      this.sourceUrl = this.canvas.nativeElement.toDataURL();
       const imageData = ctx.getImageData(0, 0, target.x, target.y);
       const color = imageData.data;
-      let bw = this.rgbaToGreyscale(color);
-      // TODO: Do image processing here
-      bw = this.equalize(bw);
+      const bw = this.rgbaToGreyscale(color);
+      this.preprocessedImage = bw;
+      this.cdfArray = this.cdf(this.histogram(bw));
+      const bwRgb = this.greyscaleToRbga(bw);
+      const bwData = new ImageData(bwRgb, this.screenSize.x, this.screenSize.y);
+      ctx.putImageData(bwData, 0, 0);
+      this.render();
+    };
+    image.src = rawImageUrl as string;
+  }
+
+
+
+  render(): void {
+      const bw = this.equalize(this.preprocessedImage);
       this.byteArray = this.dither(bw);
       const ditheredRgb = this.greyscaleToRbga(this.byteArray);
       const ditheredImage = new ImageData(ditheredRgb, this.screenSize.x, this.screenSize.y);
+      const ctx = this.canvas.nativeElement.getContext('2d') as CanvasRenderingContext2D;
       ctx.putImageData(ditheredImage, 0, 0);
-      this.previewUrl = this.canvas.nativeElement.toDataURL('image/jpeg');
-    };
-    image.src = src;
+      this.previewUrl = this.canvas.nativeElement.toDataURL();
   }
 
   private equalize(bwInput: Uint8ClampedArray): Uint8ClampedArray {
-    const cdf = this.cdf(this.histogram(bwInput));
+
     const equalized = bwInput.map(
       (brightness) => {
         // User can mix between 100% equalized image and original with adjustEqualize slider.
-        return Math.floor((255 * cdf[brightness]) * this.adjustEqualize + brightness * (1 - this.adjustEqualize));
+        return Math.floor((255 * this.cdfArray[brightness]) * this.adjustEqualize + brightness * (1 - this.adjustEqualize));
       }
     );
     return equalized;
@@ -180,24 +198,6 @@ export class SinglePicComponent implements OnInit {
     }
     return new Uint8ClampedArray(color);
   }
-
-  private toBlob(): void{
-    /* const ctx = this.canvas.nativeElement.getContext('2D') as CanvasRenderingContext2D;
-    const bytes = ctx.getImageData(0, 0, this.screenSize.x, this.screenSize.y).data; */
-    const b64String = this.canvas.nativeElement.toDataURL('image/jpeg');
-    const b64RawString = b64String.replace(/data:image\/jpeg;base64,/g, '');
-  }
-
-  private dataURItoBlob(dataURI) {
-    const byteString = window.atob(dataURI);
-    const arrayBuffer = new ArrayBuffer(byteString.length);
-    const int8Array = new Uint8Array(arrayBuffer);
-    for (let i = 0; i < byteString.length; i++) {
-      int8Array[i] = byteString.charCodeAt(i);
-    }
-    const blob = new Blob([int8Array], { type: 'image/jpeg' });
-    return blob;
- }
 
   private coverCrop(size: Vector2D, target: Vector2D): Vector2D {
     // Handle aspect ratio of input like a object-fit: cover

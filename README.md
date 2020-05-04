@@ -1,29 +1,32 @@
-# Esp32 Picture Frame: Angular Frontend for E-Ink Displays
+# Esp32 + E Ink Picture Frame
 
 <p align="center">
 <img src="docs/media/upload.gif" style="max-width: 300px; max-height: 70vh;">
 </p>
 
-Picture frame webapp + server for Waveshare's [Esp32 driver board](https://www.waveshare.com/product/displays/accessories/driver-boards/e-paper-esp32-driver-board.htm) and an E Ink display utilizing [PlatformIO](https://maker.pro/arduino/tutorial/how-to-use-platformio-in-visual-studio-code-to-program-arduino) & Angular.
-
-Currently for the 7.5" 800x480 Waveshare display only.
-
 ## Features
 * Upload pictures from any device in your network
-* Preview & adjust images before uploading
+* Incl. dithering: Preview & adjust images before uploading
 * Image processing optimized for E Ink displays
   * Histogram equalization increases the look on E Ink displays
   * Exposure and contrast sliders can adjust any kind of suboptimal photos
-
+* Soon: Image Gallery and slide show mode
 
 ## Overview
-* ESP32 as server and picture storage
-* Material design via [Angular Material Components](https://material.angular.io/)
+* Picture frame webapp + server
+* More IOT! Deploy this honeypot easily in your own network!
+* Components
+  * Target: Waveshare's [Esp32 driver board](https://www.waveshare.com/product/displays/accessories/driver-boards/e-paper-esp32-driver-board.htm) 
+  * Display: Cheap [7.5" 800x480 E Ink display](https://www.waveshare.com/product/displays/e-paper/epaper-1/7.5inch-e-paper-hat.htm) from waveshare
+* Frameworks
+  * [PlatformIO](https://maker.pro/arduino/tutorial/how-to-use-platformio-in-visual-studio-code-to-program-arduino) with wiring lib from Arduino.
+  * Angular
+  * Material design via [Angular Material Components](https://material.angular.io/)
 * All files to be served are stored within the ESP32's SPIFFS
 * This project allows easily building all frontend artifacts into pre-compressed files with just one command, see [build angular](#Build-Angular-Frontend)
 
 ## TODO: Work in Progress
-* Embed more E Ink displays
+* Embed more E Ink displays: Currently for the 7.5" 800x480 Waveshare display only.
 * Refactor hard coded parameters into system settings section
 * Implement an image gallery and slide show mode
 * Enable energy saving as well as self power off
@@ -125,9 +128,10 @@ Please check your own setup for this.
 |           | 3V3             | 3V3
 
 ## Dependencies
-### Arduino Framework Dependencies
+### ESP32 Dependencies
+* [Async TCP Library for ESP32](https://github.com/me-no-dev/AsyncTCP)
 * [GxEPD2](https://github.com/ZinggJM/GxEPD2) Waveshare lib for epd displays
 * [Adafruit GFX](https://github.com/adafruit/Adafruit-GFX-Library) - can be found in lib manager to auto-install
 
 ### Angular Dependencies
-See package.json for details on the angular dependencies.
+See package.json and 3rdpartylicenses.txt for details on the angular dependencies.

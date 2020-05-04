@@ -1,19 +1,34 @@
-# Esp32 Picture Frame: Angular Frontend for E-Ink Display
+# Esp32 Picture Frame: Angular Frontend for E-Ink Displays
 
 <p align="center">
 <img src="docs/media/screenshot_main.png" width="50%">
 </p>
 
-Picture frame for Waveshark's [Esp32 driver board](https://www.waveshare.com/product/displays/accessories/driver-boards/e-paper-esp32-driver-board.htm) & an "e-ink" display utilizing the [Arduino Framework](https://www.arduino.cc/) on [PlatformIO](https://maker.pro/arduino/tutorial/how-to-use-platformio-in-visual-studio-code-to-program-arduino) & Angular.
+Picture frame for Waveshare's [Esp32 driver board](https://www.waveshare.com/product/displays/accessories/driver-boards/e-paper-esp32-driver-board.htm) and an E Ink display utilizing [PlatformIO](https://maker.pro/arduino/tutorial/how-to-use-platformio-in-visual-studio-code-to-program-arduino) & Angular.
 
-Work still in progress, but single image upload is already working.
+Currently for the 7.5" 800x480 Waveshare display only.
+
+## Features
+* Upload pictures from any device in your network
+* Preview & adjust images before uploading
+* Image processing optimized for E Ink displays
+  * Histogram equalization increases the look on E Ink displays
+  * Exposure and contrast sliders can adjust any kind of suboptimal photos
+
 
 ## Overview
-The frontend is served by the ESP32 and allows uploading images to the picture frame. The design is kept material-like utilizing  [Angular Material Components](https://material.angular.io/). 
-All files to be served are stored within the ESP32's SPIFFS, this project allows easily building all frontend artifacts into pre-compressed files with just one command, see [build angular](#Build-Angular-Frontend)
+* An ESP32 serves a webapp and stores new images
+* Uses Material design via [Angular Material Components](https://material.angular.io/)
+* All files to be served are stored within the ESP32's SPIFFS
+* This project allows easily building all frontend artifacts into pre-compressed files with just one command, see [build angular](#Build-Angular-Frontend)
 
-## Developer Setup
-Sometimes it is not easy for beginners to set up all of this, hence a detailed description.
+## Work in Progress
+* Embed more E Ink displays
+* Refactor hard coded parameters into system settings section
+* Implement an image gallery and slide show mode
+* Enable energy saving as well as self power off
+
+# Developer Setup
 
 ### Arduino IDE
 This project is migrated to PlatformIo. It allows using better tools and still uses the Angular framework and libraries. To setup the "Arduino" part of this project, see [Setup PlatformIO](#setup-platformio)

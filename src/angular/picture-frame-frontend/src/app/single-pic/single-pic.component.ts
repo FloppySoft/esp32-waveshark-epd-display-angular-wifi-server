@@ -25,8 +25,8 @@ export class SinglePicComponent implements OnInit {
   byteArray: Uint8ClampedArray;
   isDragging = false;
   isPreview = false;
-  adjustBrightness = 100;
-  adjustContrast = 100;
+  adjustExposure = 0;
+  adjustContrast = 0;
   adjustEqualize = 1;
 
   constructor(
@@ -99,39 +99,63 @@ export class SinglePicComponent implements OnInit {
         target.x,  // width  - Drawing width on canvas
         target.y,  // heigt
       );
-      // Store cropped & resized color image
+      // Store cropped & resized color image for preview (of color original)
       this.sourceUrl = this.canvas.nativeElement.toDataURL();
+      // Extract image data to further process
       const imageData = ctx.getImageData(0, 0, target.x, target.y);
       const color = imageData.data;
       const bw = this.rgbaToGreyscale(color);
+      // Store all one time preprocessed data globally, can be accessed by image adjusting functions
       this.preprocessedImage = bw;
-      this.cdfArray = this.cdf(this.histogram(bw));
+      this.cdfArray = this.cdf(this.histogram(bw)); // get histogram distribution
       const bwRgb = this.greyscaleToRbga(bw);
       const bwData = new ImageData(bwRgb, this.screenSize.x, this.screenSize.y);
+      // ctx is further used every time if image to url conversion is needed
       ctx.putImageData(bwData, 0, 0);
-      this.render();
+      this.render(); // Does dithering & image processing
     };
     image.src = rawImageUrl as string;
   }
 
 
-
+/**
+ * Processes the image data: Brightness, contrast, equalization.
+ * Called once on image load and each time the image adjustment sliders are changed
+ */
   render(): void {
-      const bw = this.equalize(this.preprocessedImage);
-      this.byteArray = this.dither(bw);
-      const ditheredRgb = this.greyscaleToRbga(this.byteArray);
-      const ditheredImage = new ImageData(ditheredRgb, this.screenSize.x, this.screenSize.y);
-      const ctx = this.canvas.nativeElement.getContext('2d') as CanvasRenderingContext2D;
-      ctx.putImageData(ditheredImage, 0, 0);
-      this.previewUrl = this.canvas.nativeElement.toDataURL();
+      const bw = this.processImage(this.preprocessedImage); // Equalizes the histogram (with mix factor)
+      this.bwToImageUrl(bw);
   }
 
-  private equalize(bwInput: Uint8ClampedArray): Uint8ClampedArray {
+  /**
+   * Converts a black and white array to image url previewUrl, stored globally.
+   * @param bw Black and white Unit8ClampedArray
+   */
+  private bwToImageUrl(bw: Uint8ClampedArray) {
+    this.byteArray = this.dither(bw);
+    const ditheredRgb = this.greyscaleToRbga(this.byteArray);
+    const ditheredImage = new ImageData(ditheredRgb, this.screenSize.x, this.screenSize.y);
+    const ctx = this.canvas.nativeElement.getContext('2d') as CanvasRenderingContext2D;
+    ctx.putImageData(ditheredImage, 0, 0);
+    this.previewUrl = this.canvas.nativeElement.toDataURL();
+  }
 
+  /**
+   * Processes the image regarding brightness, equalization, contrast.
+   * Equalization has a wet/dry-like mix factor.
+   * @param bwInput Black and white Unit8ClampedArray
+   */
+  private processImage(bwInput: Uint8ClampedArray): Uint8ClampedArray {
+    /*
+    Instead of using brightness processing (adding a brightness value) which always
+    influences the contrast, an exposure-like processing is chosen.
+    */
+    const exposure = Math.pow(2, this.adjustExposure);
     const equalized = bwInput.map(
       (brightness) => {
         // User can mix between 100% equalized image and original with adjustEqualize slider.
-        return Math.floor((255 * this.cdfArray[brightness]) * this.adjustEqualize + brightness * (1 - this.adjustEqualize));
+        const cont = this.adjustContrast * brightness - 128 * this.adjustContrast;
+        return Math.floor(((255 * this.cdfArray[brightness]) * this.adjustEqualize + brightness * (1 - this.adjustEqualize)) * exposure + cont);
       }
     );
     return equalized;
@@ -175,7 +199,7 @@ export class SinglePicComponent implements OnInit {
 
   /**
    * Greyscale needs to be weighted from color values.
-   * See https://en.wikipedia.org/wiki/Grayscale for details
+   * See https://en.wikipedia.org/wiki/Grayscale for details.
    * @param rgbInput RGBA Array
    */
   private rgbaToGreyscale(rgbInput: Uint8ClampedArray): Uint8ClampedArray {

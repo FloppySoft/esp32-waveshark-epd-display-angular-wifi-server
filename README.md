@@ -1,10 +1,10 @@
 # Esp32 Picture Frame: Angular Frontend for E-Ink Displays
 
 <p align="center">
-<img src="docs/media/screenshot_main.png" width="50%">
+<img src="docs/media/upload.gif" style="max-width: 300px; max-height: 70vh;">
 </p>
 
-Picture frame for Waveshare's [Esp32 driver board](https://www.waveshare.com/product/displays/accessories/driver-boards/e-paper-esp32-driver-board.htm) and an E Ink display utilizing [PlatformIO](https://maker.pro/arduino/tutorial/how-to-use-platformio-in-visual-studio-code-to-program-arduino) & Angular.
+Picture frame webapp + server for Waveshare's [Esp32 driver board](https://www.waveshare.com/product/displays/accessories/driver-boards/e-paper-esp32-driver-board.htm) and an E Ink display utilizing [PlatformIO](https://maker.pro/arduino/tutorial/how-to-use-platformio-in-visual-studio-code-to-program-arduino) & Angular.
 
 Currently for the 7.5" 800x480 Waveshare display only.
 
@@ -17,12 +17,12 @@ Currently for the 7.5" 800x480 Waveshare display only.
 
 
 ## Overview
-* An ESP32 serves a webapp and stores new images
-* Uses Material design via [Angular Material Components](https://material.angular.io/)
+* ESP32 as server and picture storage
+* Material design via [Angular Material Components](https://material.angular.io/)
 * All files to be served are stored within the ESP32's SPIFFS
 * This project allows easily building all frontend artifacts into pre-compressed files with just one command, see [build angular](#Build-Angular-Frontend)
 
-## Work in Progress
+## TODO: Work in Progress
 * Embed more E Ink displays
 * Refactor hard coded parameters into system settings section
 * Implement an image gallery and slide show mode
